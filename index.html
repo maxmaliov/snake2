@@ -179,7 +179,7 @@
       <button class="ctrl-btn" id="tiltRightBtn">▶</button>
     </div>
     <div class="overlay" id="gameOverOverlay">
-      <h2 style="color:#e74c3c;">Авария!</h2>
+      <h2 style="color:#e74c3c;" id="gameOverTitle">Авария!</h2>
       <p id="finalScoreText" style="font-size:1.3rem;"></p>
       <button class="btn" id="restartBtn">Заново</button>
       <button class="btn secondary" id="menuOverlayBtn">Меню</button>
@@ -188,553 +188,552 @@
 </div>
 
 <script>
-  (function() {
-    // ========== ЛОКАЛИЗАЦИЯ ==========
-    const locales = {
-      ru: {
-        play: 'Играть', shop: 'Магазин', settings: 'Настройки', history: 'История',
-        shopTitle: 'Магазин скинов', back: 'Назад',
-        settingsTitle: 'Настройки', diff: 'Сложность', easy: 'Лёгкая', medium: 'Средняя', hard: 'Сложная',
-        sound: 'Звук', on: 'Вкл', off: 'Выкл',
-        historyTitle: 'История рекордов', noRecords: 'Нет записей',
-        menu: 'Меню', gameOver: 'Авария!', restart: 'Заново', distance: 'Дистанция', coins: 'Монеты',
-        skinDefault: 'Классика', skinOcean: 'Океан', skinLava: 'Лава', skinForest: 'Лес', skinSunset: 'Закат',
-        buy: 'Купить', select: 'Выбрать', active: 'Активно'
-      },
-      en: {
-        play: 'Play', shop: 'Shop', settings: 'Settings', history: 'History',
-        shopTitle: 'Skin Shop', back: 'Back',
-        settingsTitle: 'Settings', diff: 'Difficulty', easy: 'Easy', medium: 'Medium', hard: 'Hard',
-        sound: 'Sound', on: 'On', off: 'Off',
-        historyTitle: 'Score History', noRecords: 'No records',
-        menu: 'Menu', gameOver: 'Crash!', restart: 'Restart', distance: 'Distance', coins: 'Coins',
-        skinDefault: 'Classic', skinOcean: 'Ocean', skinLava: 'Lava', skinForest: 'Forest', skinSunset: 'Sunset',
-        buy: 'Buy', select: 'Select', active: 'Active'
-      }
-    };
-    let lang = 'ru';
-    function t(key) { return locales[lang][key] || key; }
+(function() {
+  // ========== ЛОКАЛИЗАЦИЯ ==========
+  const locales = {
+    ru: {
+      play: 'Играть', shop: 'Магазин', settings: 'Настройки', history: 'История',
+      shopTitle: 'Магазин скинов', back: 'Назад',
+      settingsTitle: 'Настройки', diff: 'Сложность', easy: 'Лёгкая', medium: 'Средняя', hard: 'Сложная',
+      sound: 'Звук', on: 'Вкл', off: 'Выкл',
+      historyTitle: 'История рекордов', noRecords: 'Нет записей',
+      menu: 'Меню', gameOver: 'Авария!', restart: 'Заново', distance: 'Дистанция', coins: 'Монеты',
+      skinDefault: 'Классика', skinOcean: 'Океан', skinLava: 'Лава', skinForest: 'Лес', skinSunset: 'Закат',
+      buy: 'Купить', select: 'Выбрать', active: 'Активно'
+    },
+    en: {
+      play: 'Play', shop: 'Shop', settings: 'Settings', history: 'History',
+      shopTitle: 'Skin Shop', back: 'Back',
+      settingsTitle: 'Settings', diff: 'Difficulty', easy: 'Easy', medium: 'Medium', hard: 'Hard',
+      sound: 'Sound', on: 'On', off: 'Off',
+      historyTitle: 'Score History', noRecords: 'No records',
+      menu: 'Menu', gameOver: 'Crash!', restart: 'Restart', distance: 'Distance', coins: 'Coins',
+      skinDefault: 'Classic', skinOcean: 'Ocean', skinLava: 'Lava', skinForest: 'Forest', skinSunset: 'Sunset',
+      buy: 'Buy', select: 'Select', active: 'Active'
+    }
+  };
+  let lang = 'ru';
+  function t(key) { return locales[lang][key] || key; }
 
-    // ========== ХРАНИЛИЩЕ ==========
-    const STORE = {
-      settings: { difficulty:'medium', sound:'on', lang:'ru' },
-      history: [],
-      coins: 100,
-      skins: ['default'],
-      activeSkin: 'default',
-      load() {
-        try {
-          const saved = localStorage.getItem('hillracer2');
-          if(saved) Object.assign(this, JSON.parse(saved));
-        } catch(e){}
-      },
-      save() {
-        localStorage.setItem('hillracer2', JSON.stringify({
-          settings: this.settings,
-          history: this.history,
-          coins: this.coins,
-          skins: this.skins,
-          activeSkin: this.activeSkin
-        }));
-      }
-    };
-    const SKINS = [
-      { id:'default', nameKey:'skinDefault', color:'#e74c3c', price:0 },
-      { id:'ocean', nameKey:'skinOcean', color:'#3498db', price:50 },
-      { id:'lava', nameKey:'skinLava', color:'#e67e22', price:100 },
-      { id:'forest', nameKey:'skinForest', color:'#27ae60', price:150 },
-      { id:'sunset', nameKey:'skinSunset', color:'#f1c40f', price:200 },
-    ];
-
-    // ========== АУДИО ==========
-    let audioCtx = null;
-    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-    function playSound(freq, type='square', dur=0.1, vol=0.15) {
-      if(!audioCtx || STORE.settings.sound!=='on') return;
+  // ========== ХРАНИЛИЩЕ ==========
+  const STORE = {
+    settings: { difficulty:'medium', sound:'on', lang:'ru' },
+    history: [],
+    coins: 100,
+    skins: ['default'],
+    activeSkin: 'default',
+    load() {
       try {
-        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        g.gain.setValueAtTime(vol, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
-        o.connect(g); g.connect(audioCtx.destination);
-        o.start(); o.stop(audioCtx.currentTime+dur);
+        const saved = localStorage.getItem('hillracer2');
+        if(saved) Object.assign(this, JSON.parse(saved));
       } catch(e) {}
+      this.skins = this.skins || ['default'];
+      this.history = this.history || [];
+    },
+    save() {
+      localStorage.setItem('hillracer2', JSON.stringify({
+        settings: this.settings,
+        history: this.history,
+        coins: this.coins,
+        skins: this.skins,
+        activeSkin: this.activeSkin
+      }));
     }
+  };
+  const SKINS = [
+    { id:'default', nameKey:'skinDefault', color:'#e74c3c', price:0 },
+    { id:'ocean', nameKey:'skinOcean', color:'#3498db', price:50 },
+    { id:'lava', nameKey:'skinLava', color:'#e67e22', price:100 },
+    { id:'forest', nameKey:'skinForest', color:'#27ae60', price:150 },
+    { id:'sunset', nameKey:'skinSunset', color:'#f1c40f', price:200 }
+  ];
 
-    // ========== ЭКРАНЫ ==========
-    const screens = {
-      menu: document.getElementById('menuScreen'),
-      shop: document.getElementById('shopScreen'),
-      settings: document.getElementById('settingsScreen'),
-      history: document.getElementById('historyScreen'),
-      game: document.getElementById('gameScreen')
+  // ========== АУДИО ==========
+  let audioCtx = null;
+  function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+  function playSound(freq, type='square', dur=0.1, vol=0.15) {
+    if(!audioCtx || STORE.settings.sound!=='on') return;
+    try {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      g.gain.setValueAtTime(vol, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime+dur);
+    } catch(e) {}
+  }
+
+  // ========== ЭКРАНЫ ==========
+  const screens = {
+    menu: document.getElementById('menuScreen'),
+    shop: document.getElementById('shopScreen'),
+    settings: document.getElementById('settingsScreen'),
+    history: document.getElementById('historyScreen'),
+    game: document.getElementById('gameScreen')
+  };
+  function showScreen(id) {
+    for (let s in screens) screens[s].classList.remove('active');
+    screens[id].classList.add('active');
+    if(id === 'game') startGame();
+    if(id === 'shop') renderShop();
+    if(id === 'history') renderHistory();
+    applyTexts();
+  }
+
+  // ========== ГЛОБАЛЬНЫЕ ЭЛЕМЕНТЫ ==========
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // ========== ИГРОВЫЕ ПЕРЕМЕННЫЕ ==========
+  let car = null;
+  let fuel, distance, scoreCoins;
+  let gameActive = false;
+  let gasPressed = false, brakePressed = false, tiltLeft = false, tiltRight = false;
+  let objects = { coins: [], fuelCans: [] };
+  let animFrame = null;
+
+  // ========== ПОВЕРХНОСТЬ ==========
+  let groundFunc, groundTypeFunc;
+  function buildGround() {
+    groundFunc = (x) => {
+      const base = Math.sin(x * 0.008) * 70 + Math.sin(x * 0.025) * 35 + Math.cos(x * 0.012) * 50 + 250;
+      const type = groundTypeFunc ? groundTypeFunc(x) : 0;
+      if(type === 1) return base + 12; // болото
+      if(type === 2) return base - 25; // мост
+      return base;
     };
-    function showScreen(id) {
-      Object.values(screens).forEach(s => s.classList.remove('active'));
-      screens[id].classList.add('active');
-      if(id==='game') startGame();
-      if(id==='shop') renderShop();
-      if(id==='history') renderHistory();
-      applyTexts();
+    groundTypeFunc = (x) => {
+      const zone = Math.floor(x / 600);
+      const r = (zone * 7 + 3) % 10;
+      if(r < 3) return 1; // болото 30%
+      if(r < 4) return 2; // мост 10%
+      return 0;
+    };
+  }
+  function getGroundY(x) { return groundFunc(x); }
+  function getGroundAngle(x) {
+    const dx = 1;
+    return Math.atan2(getGroundY(x+dx)-getGroundY(x-dx), 2*dx);
+  }
+
+  // ========== ФИЗИКА ==========
+  const GRAVITY = 800;
+  const CAR_MASS = 2;
+  const CAR_LENGTH = 90;
+  const CAR_HEIGHT = 30;
+  const WHEEL_RADIUS = 13;
+  const SPRING_CONSTANT = 2500;
+  const DAMPER_COEF = 50;
+  const MAX_SUSPENSION = 25;
+  const MOTOR_FORCE = 900;
+  const BRAKE_FORCE = 600;
+  const TILT_TORQUE = 400;
+  const FUEL_MAX = 100;
+
+  function resetGame() {
+    buildGround();
+    const startX = 400;
+    const frontX = startX + CAR_LENGTH/2, rearX = startX - CAR_LENGTH/2;
+    const yFront = getGroundY(frontX), yRear = getGroundY(rearX);
+    const angle = Math.atan2(yFront - yRear, CAR_LENGTH);
+    car = {
+      x: startX, y: (yFront + yRear)/2 - CAR_HEIGHT/2 - WHEEL_RADIUS - 5,
+      vx: 2, vy: 0,
+      angle: angle, angularVel: 0,
+      wheelFront: { compression: 0, compressionVel: 0 },
+      wheelRear: { compression: 0, compressionVel: 0 }
+    };
+    fuel = FUEL_MAX;
+    distance = 0;
+    scoreCoins = 0;
+    gameActive = true;
+    objects.coins = []; objects.fuelCans = [];
+    spawnObjects();
+    document.getElementById('gameOverOverlay').classList.remove('active');
+    updateGameUI();
+  }
+
+  function spawnObjects() {
+    objects.coins = objects.coins.filter(c => c.x > car.x - 500);
+    objects.fuelCans = objects.fuelCans.filter(f => f.x > car.x - 500);
+    while(objects.coins.length < 40) {
+      const x = car.x + 200 + Math.random() * 600;
+      objects.coins.push({ x, y: getGroundY(x) - 35 - Math.random()*50 });
     }
-
-    // ========== ИНТЕРФЕЙС ==========
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-
-    // ========== ИГРОВЫЕ ПЕРЕМЕННЫЕ ==========
-    let car = null;
-    let fuel, distance, scoreCoins;
-    let gameActive = false;
-    let gasPressed = false, brakePressed = false, tiltLeft = false, tiltRight = false;
-    let objects = { coins: [], fuelCans: [] };
-    let animFrame = null;
-
-    // ========== ПОВЕРХНОСТЬ ==========
-    let groundFunc, groundTypeFunc;
-    function buildGround() {
-      groundFunc = (x) => {
-        const base = Math.sin(x * 0.008) * 70 + Math.sin(x * 0.025) * 35 + Math.cos(x * 0.012) * 50 + 250;
-        const type = groundTypeFunc ? groundTypeFunc(x) : 0;
-        if(type === 1) return base + 12; // болото
-        if(type === 2) return base - 25; // мост
-        return base;
-      };
-      groundTypeFunc = (x) => {
-        const zone = Math.floor(x / 600);
-        return (zone * 7 + 3) % 10 < 3 ? 1 : ((zone * 7 + 3) % 10 === 3 ? 2 : 0);
-      };
+    while(objects.fuelCans.length < 6) {
+      const x = car.x + 400 + Math.random() * 400;
+      objects.fuelCans.push({ x, y: getGroundY(x) - 30 });
     }
-    function getGroundY(x) { return groundFunc(x); }
-    function getGroundAngle(x) {
-      const dx = 1;
-      return Math.atan2(getGroundY(x+dx)-getGroundY(x-dx), 2*dx);
+  }
+
+  function updateGameUI() {
+    document.getElementById('distanceDisplay').textContent = `${Math.floor(distance)} м`;
+    document.getElementById('fuelDisplay').textContent = `⛽ ${Math.ceil(fuel)}%`;
+    document.getElementById('scoreDisplay').textContent = `🪙 ${scoreCoins}`;
+  }
+
+  function gameOver() {
+    if(!gameActive) return;
+    gameActive = false;
+    STORE.history.push({
+      dist: Math.floor(distance), coins: scoreCoins, date: new Date().toLocaleString()
+    });
+    if(STORE.history.length > 10) STORE.history.shift();
+    STORE.coins += scoreCoins;
+    STORE.save();
+    document.getElementById('finalScoreText').textContent =
+      `${t('distance')}: ${Math.floor(distance)} м, ${t('coins')}: ${scoreCoins}`;
+    document.getElementById('gameOverOverlay').classList.add('active');
+    playSound(150, 'sawtooth', 0.3);
+    updateBalanceDisplay();
+  }
+
+  function physicsStep(dt) {
+    if(!gameActive || !car) return;
+    if(gasPressed && fuel > 0) {
+      car.vx += (MOTOR_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
+      fuel = Math.max(0, fuel - 6 * dt);
     }
+    if(brakePressed) car.vx -= (BRAKE_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
+    if(tiltLeft) car.angularVel -= TILT_TORQUE * dt / CAR_MASS;
+    if(tiltRight) car.angularVel += TILT_TORQUE * dt / CAR_MASS;
 
-    // ========== ФИЗИКА ==========
-    const GRAVITY = 800;
-    const CAR_MASS = 2;
-    const CAR_LENGTH = 90;
-    const CAR_HEIGHT = 30;
-    const WHEEL_RADIUS = 13;
-    const SPRING_CONSTANT = 2500;
-    const DAMPER_COEF = 50;
-    const MAX_SUSPENSION = 25;
-    const MOTOR_FORCE = 900;
-    const BRAKE_FORCE = 600;
-    const TILT_TORQUE = 400;
-    const FRICTION_COEF = 0.6;
-    const FUEL_MAX = 100;
+    car.vy += GRAVITY * dt;
+    car.vx *= 0.999;
+    car.angularVel *= 0.98;
 
-    function resetGame() {
-      buildGround();
-      const startX = 400;
-      const frontX = startX + CAR_LENGTH/2, rearX = startX - CAR_LENGTH/2;
-      const yFront = getGroundY(frontX), yRear = getGroundY(rearX);
-      const angle = Math.atan2(yFront - yRear, CAR_LENGTH);
-      car = {
-        x: startX, y: (yFront + yRear)/2 - CAR_HEIGHT/2 - WHEEL_RADIUS - 5,
-        vx: 2, vy: 0,
-        angle: angle, angularVel: 0,
-        wheelFront: { compression: 0, compressionVel: 0 },
-        wheelRear: { compression: 0, compressionVel: 0 }
-      };
-      fuel = FUEL_MAX;
-      distance = 0;
-      scoreCoins = 0;
-      gameActive = true;
-      objects.coins = []; objects.fuelCans = [];
-      spawnObjects();
-      document.getElementById('gameOverOverlay').classList.remove('active');
-      updateGameUI();
-    }
-
-    function spawnObjects() {
-      objects.coins = objects.coins.filter(c => c.x > car.x - 500);
-      objects.fuelCans = objects.fuelCans.filter(f => f.x > car.x - 500);
-      while(objects.coins.length < 40) {
-        const x = car.x + 200 + Math.random() * 600;
-        objects.coins.push({ x, y: getGroundY(x) - 35 - Math.random()*50 });
+    const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
+    const wheelStates = [car.wheelRear, car.wheelFront];
+    for(let i=0; i<2; i++) {
+      const offset = wheelOffsets[i];
+      const wx = car.x + offset * Math.cos(car.angle);
+      const wy = car.y + offset * Math.sin(car.angle) + CAR_HEIGHT/2 + WHEEL_RADIUS;
+      const groundY = getGroundY(wx);
+      const penetration = wy - groundY;
+      if(penetration > 0) {
+        const normalAngle = getGroundAngle(wx);
+        const springForce = SPRING_CONSTANT * penetration;
+        const velAlongNormal = car.vy * Math.cos(normalAngle) + car.vx * Math.sin(normalAngle);
+        const damperForce = DAMPER_COEF * Math.max(0, velAlongNormal);
+        const totalForce = springForce + damperForce;
+        const fx = Math.sin(normalAngle) * totalForce;
+        const fy = -Math.cos(normalAngle) * totalForce;
+        car.vx += fx * dt / CAR_MASS;
+        car.vy += fy * dt / CAR_MASS;
+        const rx = wx - car.x, ry = wy - car.y;
+        car.angularVel += (rx * fy - ry * fx) * dt / CAR_MASS;
+        const tangentAngle = normalAngle + Math.PI/2;
+        const tangentX = Math.cos(tangentAngle), tangentY = Math.sin(tangentAngle);
+        const wheelVelX = car.vx - car.angularVel * (wy - car.y);
+        const wheelVelY = car.vy + car.angularVel * (wx - car.x);
+        const tangentVel = wheelVelX * tangentX + wheelVelY * tangentY;
+        const type = groundTypeFunc(wx);
+        const frictionCoef = type === 1 ? 0.3 : (type === 2 ? 0.7 : 0.5);
+        const frictionForce = -Math.sign(tangentVel) * frictionCoef * Math.abs(totalForce);
+        car.vx += tangentX * frictionForce * dt / CAR_MASS;
+        car.vy += tangentY * frictionForce * dt / CAR_MASS;
+        car.angularVel += (rx * (tangentY * frictionForce) - ry * (tangentX * frictionForce)) * dt / CAR_MASS;
+        wheelStates[i].compression = Math.min(MAX_SUSPENSION, penetration);
+        wheelStates[i].compressionVel = velAlongNormal;
+      } else {
+        wheelStates[i].compression = 0;
+        wheelStates[i].compressionVel = 0;
       }
-      while(objects.fuelCans.length < 6) {
-        const x = car.x + 400 + Math.random() * 400;
-        objects.fuelCans.push({ x, y: getGroundY(x) - 30 });
-      }
     }
 
-    function updateGameUI() {
-      document.getElementById('distanceDisplay').textContent = `${Math.floor(distance)} м`;
-      document.getElementById('fuelDisplay').textContent = `⛽ ${Math.ceil(fuel)}%`;
-      document.getElementById('scoreDisplay').textContent = `🪙 ${scoreCoins}`;
+    car.x += car.vx * dt;
+    car.y += car.vy * dt;
+    car.angle += car.angularVel * dt;
+
+    if(Math.abs(car.angle) > Math.PI/2 + 0.4 || fuel <= 0 || car.y > getGroundY(car.x) + 250) {
+      gameOver(); return;
     }
 
-    function gameOver() {
-      if(!gameActive) return;
-      gameActive = false;
-      STORE.history.push({
-        dist: Math.floor(distance), coins: scoreCoins, date: new Date().toLocaleString()
-      });
-      if(STORE.history.length > 10) STORE.history.shift();
-      STORE.coins += scoreCoins;
-      STORE.save();
-      document.getElementById('finalScoreText').textContent =
-        `${t('distance')}: ${Math.floor(distance)} м, ${t('coins')}: ${scoreCoins}`;
-      document.getElementById('gameOverOverlay').classList.add('active');
-      playSound(150, 'sawtooth', 0.3);
-      updateBalanceDisplay();
+    const box = { l: car.x-CAR_LENGTH/2, r: car.x+CAR_LENGTH/2, t: car.y-CAR_HEIGHT/2, b: car.y+CAR_HEIGHT/2 };
+    objects.coins = objects.coins.filter(c => {
+      if(c.x>box.l && c.x<box.r && c.y>box.t && c.y<box.b) { scoreCoins++; playSound(600,'sine',0.05); return false; }
+      return true;
+    });
+    objects.fuelCans = objects.fuelCans.filter(f => {
+      if(f.x>box.l && f.x<box.r && f.y>box.t && f.y<box.b) { fuel = Math.min(FUEL_MAX, fuel+30); playSound(800,'sine',0.1); return false; }
+      return true;
+    });
+    distance += Math.max(0, car.vx * 0.1);
+    spawnObjects();
+    updateGameUI();
+  }
+
+  // ========== ОТРИСОВКА ==========
+  function drawTerrain() {
+    const startX = car.x - W/2 - 100, endX = car.x + W/2 + 100;
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    for(let x = startX; x <= endX; x+=5) {
+      const sx = W/2 + (x - car.x);
+      const sy = H/2 + (getGroundY(x) - car.y);
+      ctx.lineTo(sx, sy);
     }
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    const type = groundTypeFunc(car.x);
+    if(type === 1) ctx.fillStyle = '#8B5A2B';
+    else if(type === 2) ctx.fillStyle = '#CD853F';
+    else ctx.fillStyle = '#4CAF50';
+    ctx.fill();
+    ctx.strokeStyle = '#2E7D32'; ctx.lineWidth=2; ctx.stroke();
+  }
 
-    function physicsStep(dt) {
-      if(!gameActive || !car) return;
-      // управление
-      if(gasPressed && fuel > 0) {
-        car.vx += (MOTOR_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
-        fuel = Math.max(0, fuel - 6 * dt);
-      }
-      if(brakePressed) car.vx -= (BRAKE_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
-      if(tiltLeft) car.angularVel -= TILT_TORQUE * dt / CAR_MASS;
-      if(tiltRight) car.angularVel += TILT_TORQUE * dt / CAR_MASS;
-
-      car.vy += GRAVITY * dt;
-      car.vx *= 0.999;
-      car.angularVel *= 0.98;
-
-      const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
-      const wheelStates = [car.wheelRear, car.wheelFront];
-      for(let i=0; i<2; i++) {
-        const offset = wheelOffsets[i];
-        const wx = car.x + offset * Math.cos(car.angle);
-        const wy = car.y + offset * Math.sin(car.angle) + CAR_HEIGHT/2 + WHEEL_RADIUS;
-        const groundY = getGroundY(wx);
-        const penetration = wy - groundY;
-        if(penetration > 0) {
-          const normalAngle = getGroundAngle(wx);
-          const springForce = SPRING_CONSTANT * penetration;
-          const velAlongNormal = car.vy * Math.cos(normalAngle) + car.vx * Math.sin(normalAngle);
-          const damperForce = DAMPER_COEF * Math.max(0, velAlongNormal);
-          const totalForce = springForce + damperForce;
-          const fx = Math.sin(normalAngle) * totalForce;
-          const fy = -Math.cos(normalAngle) * totalForce;
-          car.vx += fx * dt / CAR_MASS;
-          car.vy += fy * dt / CAR_MASS;
-          const rx = wx - car.x, ry = wy - car.y;
-          car.angularVel += (rx * fy - ry * fx) * dt / CAR_MASS;
-          const tangentAngle = normalAngle + Math.PI/2;
-          const tangentX = Math.cos(tangentAngle), tangentY = Math.sin(tangentAngle);
-          const wheelVelX = car.vx - car.angularVel * (wy - car.y);
-          const wheelVelY = car.vy + car.angularVel * (wx - car.x);
-          const tangentVel = wheelVelX * tangentX + wheelVelY * tangentY;
-          const type = groundTypeFunc(wx);
-          const frictionCoef = type === 1 ? 0.3 : (type === 2 ? 0.7 : 0.5);
-          const frictionForce = -Math.sign(tangentVel) * frictionCoef * Math.abs(totalForce);
-          car.vx += tangentX * frictionForce * dt / CAR_MASS;
-          car.vy += tangentY * frictionForce * dt / CAR_MASS;
-          car.angularVel += (rx * (tangentY * frictionForce) - ry * (tangentX * frictionForce)) * dt / CAR_MASS;
-          wheelStates[i].compression = Math.min(MAX_SUSPENSION, penetration);
-          wheelStates[i].compressionVel = velAlongNormal;
-        } else {
-          wheelStates[i].compression = 0;
-          wheelStates[i].compressionVel = 0;
-        }
-      }
-
-      car.x += car.vx * dt;
-      car.y += car.vy * dt;
-      car.angle += car.angularVel * dt;
-
-      if(Math.abs(car.angle) > Math.PI/2 + 0.4 || fuel <= 0 || car.y > getGroundY(car.x) + 250) {
-        gameOver(); return;
-      }
-
-      const box = { l: car.x-CAR_LENGTH/2, r: car.x+CAR_LENGTH/2, t: car.y-CAR_HEIGHT/2, b: car.y+CAR_HEIGHT/2 };
-      objects.coins = objects.coins.filter(c => {
-        if(c.x>box.l && c.x<box.r && c.y>box.t && c.y<box.b) { scoreCoins++; playSound(600,'sine',0.05); return false; }
-        return true;
-      });
-      objects.fuelCans = objects.fuelCans.filter(f => {
-        if(f.x>box.l && f.x<box.r && f.y>box.t && f.y<box.b) { fuel = Math.min(FUEL_MAX, fuel+30); playSound(800,'sine',0.1); return false; }
-        return true;
-      });
-      distance += Math.max(0, car.vx * 0.1);
-      spawnObjects();
-      updateGameUI();
-    }
-
-    // ========== ОТРИСОВКА ==========
-    function drawTerrain() {
-      const startX = car.x - W/2 - 100, endX = car.x + W/2 + 100;
-      ctx.beginPath();
-      ctx.moveTo(0, H);
-      for(let x = startX; x <= endX; x+=5) {
-        const sx = W/2 + (x - car.x);
-        const sy = H/2 + (getGroundY(x) - car.y);
-        ctx.lineTo(sx, sy);
-      }
-      ctx.lineTo(W, H);
-      ctx.closePath();
-      const type = groundTypeFunc(car.x);
-      if(type === 1) ctx.fillStyle = '#8B5A2B'; // болото коричневое
-      else if(type === 2) ctx.fillStyle = '#CD853F'; // мост деревянный
-      else ctx.fillStyle = '#4CAF50'; // трава зелёная
-      ctx.fill();
-      ctx.strokeStyle = '#2E7D32'; ctx.lineWidth=2; ctx.stroke();
-    }
-
-    function drawCar() {
-      if(!car) return;
-      const skin = SKINS.find(s=>s.id===STORE.activeSkin) || SKINS[0];
+  function drawCar() {
+    const skin = SKINS.find(s=>s.id===STORE.activeSkin) || SKINS[0];
+    ctx.save();
+    ctx.translate(W/2, H/2);
+    ctx.rotate(car.angle);
+    ctx.fillStyle = skin.color;
+    ctx.fillRect(-CAR_LENGTH/2, -CAR_HEIGHT/2, CAR_LENGTH, CAR_HEIGHT);
+    ctx.fillStyle = '#AED6F1';
+    ctx.fillRect(-12, -CAR_HEIGHT/2+4, 24, 10);
+    ctx.fillStyle = '#F9E79F';
+    ctx.beginPath(); ctx.arc(CAR_LENGTH/2-6, -5, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(CAR_LENGTH/2-6, 5, 5, 0, Math.PI*2); ctx.fill();
+    const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
+    const comps = [car.wheelRear.compression, car.wheelFront.compression];
+    wheelOffsets.forEach((off, i) => {
       ctx.save();
-      ctx.translate(W/2, H/2);
-      ctx.rotate(car.angle);
-      // кузов
-      ctx.fillStyle = skin.color;
-      ctx.fillRect(-CAR_LENGTH/2, -CAR_HEIGHT/2, CAR_LENGTH, CAR_HEIGHT);
-      ctx.fillStyle = '#AED6F1';
-      ctx.fillRect(-12, -CAR_HEIGHT/2+4, 24, 10);
-      ctx.fillStyle = '#F9E79F';
-      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-6, -5, 5, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-6, 5, 5, 0, Math.PI*2); ctx.fill();
-      // колёса с подвеской
-      const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
-      const comps = [car.wheelRear.compression, car.wheelFront.compression];
-      wheelOffsets.forEach((off, i) => {
-        ctx.save();
-        ctx.translate(off, CAR_HEIGHT/2 + WHEEL_RADIUS - comps[i]);
-        ctx.fillStyle = '#212F3D';
-        ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#5D6D7E';
-        ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS-4, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = '#ABB2B9';
-        for(let j=0; j<4; j++) {
-          ctx.beginPath();
-          ctx.moveTo(0,0);
-          ctx.lineTo(Math.cos(j*Math.PI/2)*(WHEEL_RADIUS-4), Math.sin(j*Math.PI/2)*(WHEEL_RADIUS-4));
-          ctx.stroke();
-        }
-        ctx.restore();
-      });
+      ctx.translate(off, CAR_HEIGHT/2 + WHEEL_RADIUS - comps[i]);
+      ctx.fillStyle = '#212F3D';
+      ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#5D6D7E';
+      ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS-4, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#ABB2B9';
+      for(let j=0; j<4; j++) {
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.lineTo(Math.cos(j*Math.PI/2)*(WHEEL_RADIUS-4), Math.sin(j*Math.PI/2)*(WHEEL_RADIUS-4));
+        ctx.stroke();
+      }
       ctx.restore();
+    });
+    ctx.restore();
+  }
+
+  function drawObjects() {
+    objects.coins.forEach(c => {
+      const sx = W/2 + (c.x - car.x), sy = H/2 + (c.y - car.y);
+      ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#B8860B'; ctx.beginPath(); ctx.arc(sx-2, sy-2, 2, 0, Math.PI*2); ctx.fill();
+    });
+    objects.fuelCans.forEach(f => {
+      const sx = W/2 + (f.x - car.x), sy = H/2 + (f.y - car.y);
+      ctx.fillStyle = '#E74C3C'; ctx.fillRect(sx-7, sy-10, 14, 20);
+      ctx.fillStyle = 'white'; ctx.fillRect(sx-3, sy-8, 6, 4);
+    });
+  }
+
+  function render() {
+    ctx.clearRect(0,0,W,H);
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#87CEEB'); grad.addColorStop(1,'#E0F7FA');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+    if(car) {
+      drawTerrain();
+      drawObjects();
+      drawCar();
+    }
+  }
+
+  function gameLoop() {
+    if(gameActive && car) {
+      const dt = Math.min(0.02, 1/60);
+      for(let i=0; i<4; i++) physicsStep(dt/4);
+    }
+    render();
+    animFrame = requestAnimationFrame(gameLoop);
+  }
+
+  // ========== УПРАВЛЕНИЕ ==========
+  function bindControls() {
+    const gas = document.getElementById('gasBtn');
+    const brake = document.getElementById('brakeBtn');
+    const left = document.getElementById('tiltLeftBtn');
+    const right = document.getElementById('tiltRightBtn');
+
+    function addMultiEvent(el, events, handler) {
+      events.split(' ').forEach(e => el.addEventListener(e, handler, {passive: false}));
     }
 
-    function drawObjects() {
-      if(!car) return;
-      objects.coins.forEach(c => {
-        const sx = W/2 + (c.x - car.x), sy = H/2 + (c.y - car.y);
-        ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#B8860B'; ctx.beginPath(); ctx.arc(sx-2, sy-2, 2, 0, Math.PI*2); ctx.fill();
-      });
-      objects.fuelCans.forEach(f => {
-        const sx = W/2 + (f.x - car.x), sy = H/2 + (f.y - car.y);
-        ctx.fillStyle = '#E74C3C';
-        ctx.fillRect(sx-7, sy-10, 14, 20);
-        ctx.fillStyle = 'white';
-        ctx.fillRect(sx-3, sy-8, 6, 4);
-      });
-    }
+    addMultiEvent(gas, 'mousedown touchstart', e => { e.preventDefault(); gasPressed = true; });
+    addMultiEvent(gas, 'mouseup touchend mouseleave', e => { e.preventDefault(); gasPressed = false; });
+    addMultiEvent(brake, 'mousedown touchstart', e => { e.preventDefault(); brakePressed = true; });
+    addMultiEvent(brake, 'mouseup touchend mouseleave', e => { e.preventDefault(); brakePressed = false; });
+    addMultiEvent(left, 'mousedown touchstart', e => { e.preventDefault(); tiltLeft = true; });
+    addMultiEvent(left, 'mouseup touchend mouseleave', e => { e.preventDefault(); tiltLeft = false; });
+    addMultiEvent(right, 'mousedown touchstart', e => { e.preventDefault(); tiltRight = true; });
+    addMultiEvent(right, 'mouseup touchend mouseleave', e => { e.preventDefault(); tiltRight = false; });
 
-    function render() {
-      ctx.clearRect(0,0,W,H);
-      const grad = ctx.createLinearGradient(0,0,0,H);
-      grad.addColorStop(0,'#87CEEB'); grad.addColorStop(1,'#E0F7FA');
-      ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
-      if(car) {
-        drawTerrain();
-        drawObjects();
-        drawCar();
-      }
-    }
+    window.addEventListener('keydown', e => {
+      if(!gameActive) return;
+      if(e.key === 'ArrowUp') { e.preventDefault(); gasPressed = true; }
+      else if(e.key === 'ArrowDown') { e.preventDefault(); brakePressed = true; }
+      else if(e.key === 'ArrowLeft') { e.preventDefault(); tiltLeft = true; }
+      else if(e.key === 'ArrowRight') { e.preventDefault(); tiltRight = true; }
+    });
+    window.addEventListener('keyup', e => {
+      if(e.key === 'ArrowUp') { e.preventDefault(); gasPressed = false; }
+      else if(e.key === 'ArrowDown') { e.preventDefault(); brakePressed = false; }
+      else if(e.key === 'ArrowLeft') { e.preventDefault(); tiltLeft = false; }
+      else if(e.key === 'ArrowRight') { e.preventDefault(); tiltRight = false; }
+    });
+  }
 
-    // ========== ГЛАВНЫЙ ЦИКЛ ==========
-    function gameLoop() {
-      if(gameActive && car) {
-        const dt = Math.min(0.02, 1/60);
-        for(let i=0; i<4; i++) physicsStep(dt/4);
-      }
-      render();
-      animFrame = requestAnimationFrame(gameLoop);
-    }
+  // ========== UI ==========
+  function applyTexts() {
+    document.getElementById('playBtn').textContent = t('play');
+    document.getElementById('shopBtn').textContent = t('shop');
+    document.getElementById('settingsBtn').textContent = t('settings');
+    document.getElementById('historyBtn').textContent = t('history');
+    document.getElementById('shopTitle').textContent = t('shopTitle');
+    document.getElementById('backFromShop').textContent = t('back');
+    document.getElementById('settingsTitle').textContent = t('settingsTitle');
+    document.getElementById('diffLabel').textContent = t('diff');
+    document.querySelectorAll('#diffOptions .opt-btn').forEach(b => b.textContent = t(b.dataset.diff));
+    document.getElementById('soundLabel').textContent = t('sound');
+    document.querySelectorAll('#soundOptions .opt-btn').forEach(b => b.textContent = t(b.dataset.sound));
+    document.getElementById('backFromSettings').textContent = t('back');
+    document.getElementById('historyTitle').textContent = t('historyTitle');
+    document.getElementById('backFromHistory').textContent = t('back');
+    document.getElementById('exitGameBtn').textContent = t('menu');
+    const got = document.getElementById('gameOverTitle');
+    if(got) got.textContent = t('gameOver');
+    document.getElementById('restartBtn').textContent = t('restart');
+    document.getElementById('menuOverlayBtn').textContent = t('menu');
+    if(gameActive && car) updateGameUI();
+  }
 
-    // ========== УПРАВЛЕНИЕ ==========
-    function bindControls() {
-      const gas = document.getElementById('gasBtn'), brake = document.getElementById('brakeBtn');
-      const left = document.getElementById('tiltLeftBtn'), right = document.getElementById('tiltRightBtn');
-      const setTrue = v => e => { e.preventDefault(); v = true; };
-      const setFalse = v => e => { e.preventDefault(); v = false; };
-      gas.addEventListener('pointerdown', () => gasPressed = true);
-      gas.addEventListener('pointerup', () => gasPressed = false);
-      brake.addEventListener('pointerdown', () => brakePressed = true);
-      brake.addEventListener('pointerup', () => brakePressed = false);
-      left.addEventListener('pointerdown', () => tiltLeft = true);
-      left.addEventListener('pointerup', () => tiltLeft = false);
-      right.addEventListener('pointerdown', () => tiltRight = true);
-      right.addEventListener('pointerup', () => tiltRight = false);
-      window.addEventListener('keydown', e => {
-        if(!gameActive) return;
-        switch(e.key) {
-          case 'ArrowUp': e.preventDefault(); gasPressed = true; break;
-          case 'ArrowDown': e.preventDefault(); brakePressed = true; break;
-          case 'ArrowLeft': e.preventDefault(); tiltLeft = true; break;
-          case 'ArrowRight': e.preventDefault(); tiltRight = true; break;
-        }
-      });
-      window.addEventListener('keyup', e => {
-        switch(e.key) {
-          case 'ArrowUp': gasPressed = false; break;
-          case 'ArrowDown': brakePressed = false; break;
-          case 'ArrowLeft': tiltLeft = false; break;
-          case 'ArrowRight': tiltRight = false; break;
-        }
-      });
-    }
+  function updateSettingsUI() {
+    document.querySelectorAll('#diffOptions .opt-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.diff === STORE.settings.difficulty);
+    });
+    document.querySelectorAll('#soundOptions .opt-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.sound === STORE.settings.sound);
+    });
+  }
 
-    // ========== ОБРАБОТЧИКИ UI ==========
-    function applyTexts() {
-      document.getElementById('playBtn').textContent = t('play');
-      document.getElementById('shopBtn').textContent = t('shop');
-      document.getElementById('settingsBtn').textContent = t('settings');
-      document.getElementById('historyBtn').textContent = t('history');
-      document.getElementById('shopTitle').textContent = t('shopTitle');
-      document.getElementById('backFromShop').textContent = t('back');
-      document.getElementById('settingsTitle').textContent = t('settingsTitle');
-      document.getElementById('diffLabel').textContent = t('diff');
-      document.querySelectorAll('#diffOptions .opt-btn').forEach(b => b.textContent = t(b.dataset.diff));
-      document.getElementById('soundLabel').textContent = t('sound');
-      document.querySelectorAll('#soundOptions .opt-btn').forEach(b => b.textContent = t(b.dataset.sound));
-      document.getElementById('backFromSettings').textContent = t('back');
-      document.getElementById('historyTitle').textContent = t('historyTitle');
-      document.getElementById('backFromHistory').textContent = t('back');
-      document.getElementById('exitGameBtn').textContent = t('menu');
-      document.getElementById('gameOverTitle')?.textContent = t('gameOver');
-      document.getElementById('restartBtn').textContent = t('restart');
-      document.getElementById('menuOverlayBtn').textContent = t('menu');
-      if(gameActive && car) updateGameUI();
-    }
+  function renderShop() {
+    const list = document.getElementById('shopList');
+    list.innerHTML = SKINS.map(s => {
+      const owned = STORE.skins.includes(s.id);
+      const active = STORE.activeSkin === s.id;
+      let btnHtml;
+      if(active) btnHtml = `<span style="color:#27ae60">${t('active')}</span>`;
+      else if(owned) btnHtml = `<button class="select-skin-btn" data-id="${s.id}">${t('select')}</button>`;
+      else btnHtml = `<button class="buy-skin-btn" data-id="${s.id}">${s.price} 🪙 ${t('buy')}</button>`;
+      return `<div class="shop-item"><span style="color:${s.color}">${t(s.nameKey)}</span>${btnHtml}</div>`;
+    }).join('');
+    document.querySelectorAll('.buy-skin-btn').forEach(b => {
+      b.addEventListener('click', () => buySkin(b.dataset.id));
+    });
+    document.querySelectorAll('.select-skin-btn').forEach(b => {
+      b.addEventListener('click', () => selectSkin(b.dataset.id));
+    });
+  }
 
-    function updateSettingsUI() {
-      document.querySelectorAll('#diffOptions .opt-btn').forEach(b => {
-        b.classList.toggle('selected', b.dataset.diff === STORE.settings.difficulty);
-      });
-      document.querySelectorAll('#soundOptions .opt-btn').forEach(b => {
-        b.classList.toggle('selected', b.dataset.sound === STORE.settings.sound);
-      });
-    }
-
-    function renderShop() {
-      document.getElementById('shopList').innerHTML = SKINS.map(s => {
-        const owned = STORE.skins.includes(s.id);
-        const active = STORE.activeSkin === s.id;
-        let btnHtml;
-        if(active) btnHtml = `<span style="color:#27ae60">${t('active')}</span>`;
-        else if(owned) btnHtml = `<button class="select-skin-btn" data-id="${s.id}">${t('select')}</button>`;
-        else btnHtml = `<button class="buy-skin-btn" data-id="${s.id}">${s.price} 🪙 ${t('buy')}</button>`;
-        return `<div class="shop-item"><span style="color:${s.color}">${t(s.nameKey)}</span>${btnHtml}</div>`;
-      }).join('');
-      document.querySelectorAll('.buy-skin-btn').forEach(b => {
-        b.addEventListener('click', () => buySkin(b.dataset.id));
-      });
-      document.querySelectorAll('.select-skin-btn').forEach(b => {
-        b.addEventListener('click', () => selectSkin(b.dataset.id));
-      });
-    }
-
-    function buySkin(id) {
-      const skin = SKINS.find(s=>s.id===id);
-      if(!skin || STORE.coins < skin.price) return;
-      STORE.coins -= skin.price;
-      STORE.skins.push(id);
+  function buySkin(id) {
+    const skin = SKINS.find(s=>s.id===id);
+    if(!skin || STORE.coins < skin.price) return;
+    STORE.coins -= skin.price;
+    STORE.skins.push(id);
+    STORE.activeSkin = id;
+    STORE.save();
+    renderShop();
+    updateBalanceDisplay();
+  }
+  function selectSkin(id) {
+    if(STORE.skins.includes(id)) {
       STORE.activeSkin = id;
       STORE.save();
       renderShop();
-      updateBalanceDisplay();
     }
-    function selectSkin(id) {
-      if(STORE.skins.includes(id)) {
-        STORE.activeSkin = id;
-        STORE.save();
-        renderShop();
-      }
-    }
+  }
 
-    function renderHistory() {
-      const list = document.getElementById('historyList');
-      list.innerHTML = STORE.history.length ? STORE.history.map(r =>
-        `<div class="history-item"><span>${r.dist} м — ${r.coins} 🪙</span><span>${r.date}</span></div>`
-      ).join('') : t('noRecords');
-    }
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    list.innerHTML = STORE.history.length ? STORE.history.map(r =>
+      `<div class="history-item"><span>${r.dist} м — ${r.coins} 🪙</span><span>${r.date}</span></div>`
+    ).join('') : t('noRecords');
+  }
 
-    function updateBalanceDisplay() {
-      document.getElementById('balanceDisplay').textContent = `🪙 ${STORE.coins}`;
-    }
+  function updateBalanceDisplay() {
+    document.getElementById('balanceDisplay').textContent = `🪙 ${STORE.coins}`;
+  }
 
-    function setLang(l) {
-      if(lang === l) return;
-      lang = l;
-      STORE.settings.lang = lang;
-      STORE.save();
-      applyTexts();
-      document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang===lang));
-      // если открыт магазин или история, перерисовать для обновления языка
-      if(screens.shop.classList.contains('active')) renderShop();
-      if(screens.history.classList.contains('active')) renderHistory();
-    }
+  function setLang(l) {
+    if(lang === l) return;
+    lang = l;
+    STORE.settings.lang = lang;
+    STORE.save();
+    applyTexts();
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang===lang));
+    if(screens.shop.classList.contains('active')) renderShop();
+    if(screens.history.classList.contains('active')) renderHistory();
+  }
 
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
-    function init() {
-      STORE.load();
-      lang = STORE.settings.lang || 'ru';
-      buildGround();
-      bindControls();
-      updateBalanceDisplay();
-      updateSettingsUI();
-      renderLangSwitch();
-      applyTexts();
-      animFrame = requestAnimationFrame(gameLoop);
-      showScreen('menu');
-    }
-
-    function renderLangSwitch() {
-      document.getElementById('langSwitch').innerHTML = `
-        <button class="lang-btn ${lang==='ru'?'active':''}" data-lang="ru">RU</button>
-        <button class="lang-btn ${lang==='en'?'active':''}" data-lang="en">EN</button>
-      `;
-      document.querySelectorAll('.lang-btn').forEach(b => {
-        b.addEventListener('click', () => setLang(b.dataset.lang));
-      });
-    }
-
-    // привязка кнопок глобально
-    document.getElementById('playBtn').addEventListener('click', () => { initAudio(); showScreen('game'); });
-    document.getElementById('shopBtn').addEventListener('click', () => showScreen('shop'));
-    document.getElementById('settingsBtn').addEventListener('click', () => { updateSettingsUI(); showScreen('settings'); });
-    document.getElementById('historyBtn').addEventListener('click', () => { renderHistory(); showScreen('history'); });
-    document.getElementById('backFromShop').addEventListener('click', () => showScreen('menu'));
-    document.getElementById('backFromSettings').addEventListener('click', () => showScreen('menu'));
-    document.getElementById('backFromHistory').addEventListener('click', () => showScreen('menu'));
-    document.getElementById('exitGameBtn').addEventListener('click', () => { gameActive = false; showScreen('menu'); });
-    document.getElementById('restartBtn').addEventListener('click', resetGame);
-    document.getElementById('menuOverlayBtn').addEventListener('click', () => { gameActive = false; showScreen('menu'); });
-
-    document.getElementById('diffOptions').addEventListener('click', e => {
-      if(e.target.classList.contains('opt-btn')) {
-        STORE.settings.difficulty = e.target.dataset.diff;
-        STORE.save(); updateSettingsUI();
-      }
+  function renderLangSwitch() {
+    document.getElementById('langSwitch').innerHTML = `
+      <button class="lang-btn ${lang==='ru'?'active':''}" data-lang="ru">RU</button>
+      <button class="lang-btn ${lang==='en'?'active':''}" data-lang="en">EN</button>
+    `;
+    document.querySelectorAll('.lang-btn').forEach(b => {
+      b.addEventListener('click', () => setLang(b.dataset.lang));
     });
-    document.getElementById('soundOptions').addEventListener('click', e => {
-      if(e.target.classList.contains('opt-btn')) {
-        STORE.settings.sound = e.target.dataset.sound;
-        STORE.save(); updateSettingsUI();
-      }
-    });
+  }
 
-    function startGame() {
-      if(!car || !gameActive) resetGame();
-      else gameActive = true; // на случай паузы
+  // ========== ИНИЦИАЛИЗАЦИЯ ==========
+  function init() {
+    STORE.load();
+    lang = STORE.settings.lang || 'ru';
+    buildGround();
+    bindControls();
+    updateBalanceDisplay();
+    updateSettingsUI();
+    renderLangSwitch();
+    applyTexts();
+    animFrame = requestAnimationFrame(gameLoop);
+    showScreen('menu');
+  }
+
+  // Привязка глобальных кнопок меню
+  document.getElementById('playBtn').addEventListener('click', () => { initAudio(); showScreen('game'); });
+  document.getElementById('shopBtn').addEventListener('click', () => showScreen('shop'));
+  document.getElementById('settingsBtn').addEventListener('click', () => { updateSettingsUI(); showScreen('settings'); });
+  document.getElementById('historyBtn').addEventListener('click', () => { renderHistory(); showScreen('history'); });
+  document.getElementById('backFromShop').addEventListener('click', () => showScreen('menu'));
+  document.getElementById('backFromSettings').addEventListener('click', () => showScreen('menu'));
+  document.getElementById('backFromHistory').addEventListener('click', () => showScreen('menu'));
+  document.getElementById('exitGameBtn').addEventListener('click', () => { gameActive = false; showScreen('menu'); });
+  document.getElementById('restartBtn').addEventListener('click', resetGame);
+  document.getElementById('menuOverlayBtn').addEventListener('click', () => { gameActive = false; showScreen('menu'); });
+
+  document.getElementById('diffOptions').addEventListener('click', e => {
+    if(e.target.classList.contains('opt-btn')) {
+      STORE.settings.difficulty = e.target.dataset.diff;
+      STORE.save(); updateSettingsUI();
     }
+  });
+  document.getElementById('soundOptions').addEventListener('click', e => {
+    if(e.target.classList.contains('opt-btn')) {
+      STORE.settings.sound = e.target.dataset.sound;
+      STORE.save(); updateSettingsUI();
+    }
+  });
 
-    init();
-  })();
+  function startGame() {
+    if(!car || !gameActive) resetGame();
+    else gameActive = true;
+  }
+
+  init();
+})();
 </script>
 </body>
 </html>
