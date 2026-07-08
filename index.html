@@ -7,13 +7,13 @@
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      background: #1a1a2e;
+      background: #e8f0f2;
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
       font-family: 'Segoe UI', system-ui, sans-serif;
       touch-action: manipulation;
       user-select: none;
-      color: white;
+      color: #1e293b;
       overflow-x: hidden;
     }
     .app {
@@ -26,105 +26,92 @@
       gap: 20px; opacity: 0; transform: translateY(15px);
       transition: opacity 0.4s ease, transform 0.4s ease;
     }
-    .screen.active {
-      display: flex; opacity: 1; transform: translateY(0);
-    }
+    .screen.active { display: flex; opacity: 1; transform: translateY(0); }
     h1 {
-      font-size: 3rem; font-weight: 900; letter-spacing: 4px;
-      background: linear-gradient(to right, #f12711, #f5af19);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      text-align: center; margin-bottom: 10px;
-      transition: all 0.4s ease;
+      font-size: 3rem; font-weight: 900; letter-spacing: 2px;
+      color: #e67e22; text-align: center; margin-bottom: 10px;
     }
     h2 {
-      font-size: 2rem; font-weight: 700;
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      text-align: center; transition: all 0.4s ease;
+      font-size: 2rem; font-weight: 700; color: #2c3e50; text-align: center;
     }
     .btn {
-      font-size: 1.3rem; font-weight: 700; padding: 15px 35px;
+      font-size: 1.3rem; font-weight: 600; padding: 15px 35px;
       border: none; border-radius: 50px; cursor: pointer;
-      background: linear-gradient(145deg, #ff8a00, #e52e71);
-      color: white; letter-spacing: 2px; text-transform: uppercase;
-      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-      box-shadow: 0 8px 25px rgba(255,138,0,0.4);
+      background: #e67e22; color: white; letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(230,126,34,0.4);
       width: 250px; text-align: center; position: relative; overflow: hidden;
     }
-    .btn::after {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 50%);
-      opacity: 0; transition: opacity 0.3s;
-    }
-    .btn:hover::after { opacity: 1; }
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255,138,0,0.6); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(230,126,34,0.6); }
     .btn:active { transform: scale(0.96); }
-    .btn.secondary {
-      background: linear-gradient(145deg, #00c6ff, #0072ff);
-      box-shadow: 0 8px 25px rgba(0,198,255,0.4);
-    }
-    .btn.secondary:hover { box-shadow: 0 15px 35px rgba(0,198,255,0.6); }
-    .setting-row { display: flex; flex-direction: column; align-items: center; gap: 8px; transition: all 0.3s; }
+    .btn.secondary { background: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,0.4); }
+    .btn.secondary:hover { box-shadow: 0 8px 20px rgba(52,152,219,0.6); }
+    .setting-row { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .options { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
     .opt-btn {
-      padding: 10px 22px; border: 2px solid #fff; background: transparent; color: white;
-      border-radius: 30px; cursor: pointer; font-weight: bold; transition: all 0.3s;
+      padding: 10px 22px; border: 2px solid #bdc3c7; background: transparent;
+      color: #2c3e50; border-radius: 30px; cursor: pointer; font-weight: bold;
+      transition: all 0.2s;
     }
-    .opt-btn.selected { background: white; color: #16213e; border-color: white; }
+    .opt-btn.selected { background: #2c3e50; color: white; border-color: #2c3e50; }
     .history-box, .shop-grid {
-      background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
-      border-radius: 16px; padding: 15px; width: 100%; max-height: 300px; overflow-y: auto;
-      transition: all 0.3s;
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(10px);
+      border-radius: 16px; padding: 15px; width: 100%; max-height: 300px;
+      overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .history-item, .shop-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding: 10px; border-bottom: 1px solid #ecf0f1;
     }
     .shop-item button {
-      background: #f5af19; border: none; padding: 8px 18px; border-radius: 20px;
-      font-weight: bold; cursor: pointer; transition: 0.3s;
+      background: #e67e22; border: none; padding: 8px 18px; border-radius: 20px;
+      font-weight: bold; cursor: pointer; color: white; transition: 0.2s;
     }
-    .shop-item button:hover { background: #f12711; }
+    .shop-item button:hover { background: #d35400; }
     canvas {
-      border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
       background: #87CEEB; max-width: 100%; height: auto;
     }
     .controls { display: flex; gap: 25px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .ctrl-btn {
       width: 75px; height: 75px; border-radius: 50%;
-      background: rgba(255,255,255,0.15); backdrop-filter: blur(6px);
-      border: 2px solid rgba(255,255,255,0.5); color: white;
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(6px);
+      border: 2px solid #bdc3c7; color: #2c3e50;
       font-size: 2.2rem; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .ctrl-btn:active { background: rgba(255,255,255,0.4); transform: scale(0.9); box-shadow: 0 8px 25px rgba(255,255,255,0.5); }
-    .game-info { display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 1.2rem; font-weight: bold; }
+    .ctrl-btn:active { background: rgba(52,152,219,0.3); transform: scale(0.9); }
+    .game-info {
+      display: flex; justify-content: space-between; width: 100%; align-items: center;
+      flex-wrap: wrap; gap: 10px; font-size: 1.1rem; font-weight: 600;
+    }
     .menu-exit-btn {
-      background: rgba(255,255,255,0.1); border: 1px solid white; color: white;
-      padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.3s;
+      background: rgba(255,255,255,0.8); border: 1px solid #bdc3c7; color: #2c3e50;
+      padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.2s;
     }
-    .menu-exit-btn:hover { background: rgba(255,255,255,0.3); }
+    .menu-exit-btn:hover { background: rgba(0,0,0,0.05); }
     .overlay {
       display: none; position: absolute; top:0; left:0; right:0; bottom:0;
-      background: rgba(0,0,0,0.85); flex-direction: column; align-items: center;
+      background: rgba(0,0,0,0.7); flex-direction: column; align-items: center;
       justify-content: center; gap: 20px; border-radius: 16px; z-index: 10;
-      backdrop-filter: blur(8px); opacity:0; transition: opacity 0.4s;
+      backdrop-filter: blur(4px); opacity:0; transition: opacity 0.4s;
     }
     .overlay.active { display: flex; opacity: 1; }
     .balance {
       position: absolute; top: 15px; right: 15px;
-      background: gold; color: black; padding: 5px 15px; border-radius: 20px;
-      font-weight: bold; font-size: 1.2rem; transition: all 0.3s;
+      background: #f1c40f; color: #1e293b; padding: 5px 15px; border-radius: 20px;
+      font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     .lang-switch {
       position: absolute; top: 15px; left: 15px;
       display: flex; gap: 5px;
     }
     .lang-btn {
-      background: rgba(255,255,255,0.2); border: none; color: white;
-      padding: 5px 10px; border-radius: 10px; cursor: pointer; transition: 0.3s;
+      background: rgba(255,255,255,0.8); border: none; color: #2c3e50;
+      padding: 5px 10px; border-radius: 10px; cursor: pointer;
+      font-weight: bold; transition: 0.2s;
     }
-    .lang-btn.active { background: white; color: black; }
+    .lang-btn.active { background: #2c3e50; color: white; }
   </style>
 </head>
 <body>
@@ -134,53 +121,53 @@
 
   <!-- MENU -->
   <div id="menuScreen" class="screen active">
-    <h1 id="titleMenu">HILL RACER</h1>
-    <button class="btn" id="playBtn">ИГРАТЬ</button>
-    <button class="btn secondary" id="shopBtn">МАГАЗИН</button>
-    <button class="btn secondary" id="settingsBtn">НАСТРОЙКИ</button>
-    <button class="btn secondary" id="historyBtn">ИСТОРИЯ</button>
+    <h1>Hill Racer</h1>
+    <button class="btn" id="playBtn">Играть</button>
+    <button class="btn secondary" id="shopBtn">Магазин</button>
+    <button class="btn secondary" id="settingsBtn">Настройки</button>
+    <button class="btn secondary" id="historyBtn">История</button>
   </div>
 
   <!-- SHOP -->
   <div id="shopScreen" class="screen">
-    <h2 id="shopTitle">МАГАЗИН СКИНОВ</h2>
+    <h2 id="shopTitle">Магазин скинов</h2>
     <div class="shop-grid" id="shopList"></div>
-    <button class="btn secondary" id="backFromShop">НАЗАД</button>
+    <button class="btn secondary" id="backFromShop">Назад</button>
   </div>
 
   <!-- SETTINGS -->
   <div id="settingsScreen" class="screen">
-    <h2 id="settingsTitle">НАСТРОЙКИ</h2>
+    <h2 id="settingsTitle">Настройки</h2>
     <div class="setting-row">
-      <span id="diffLabel">СЛОЖНОСТЬ</span>
+      <span id="diffLabel">Сложность</span>
       <div class="options" id="diffOptions">
-        <button class="opt-btn" data-diff="easy">ЛЁГКАЯ</button>
-        <button class="opt-btn selected" data-diff="medium">СРЕДНЯЯ</button>
-        <button class="opt-btn" data-diff="hard">СЛОЖНАЯ</button>
+        <button class="opt-btn" data-diff="easy">Лёгкая</button>
+        <button class="opt-btn selected" data-diff="medium">Средняя</button>
+        <button class="opt-btn" data-diff="hard">Сложная</button>
       </div>
     </div>
     <div class="setting-row">
-      <span id="soundLabel">ЗВУК</span>
+      <span id="soundLabel">Звук</span>
       <div class="options" id="soundOptions">
-        <button class="opt-btn selected" data-sound="on">ВКЛ</button>
-        <button class="opt-btn" data-sound="off">ВЫКЛ</button>
+        <button class="opt-btn selected" data-sound="on">Вкл</button>
+        <button class="opt-btn" data-sound="off">Выкл</button>
       </div>
     </div>
-    <button class="btn secondary" id="backFromSettings">НАЗАД</button>
+    <button class="btn secondary" id="backFromSettings">Назад</button>
   </div>
 
   <!-- HISTORY -->
   <div id="historyScreen" class="screen">
-    <h2 id="historyTitle">ИСТОРИЯ РЕКОРДОВ</h2>
+    <h2 id="historyTitle">История рекордов</h2>
     <div class="history-box" id="historyList"></div>
-    <button class="btn secondary" id="backFromHistory">НАЗАД</button>
+    <button class="btn secondary" id="backFromHistory">Назад</button>
   </div>
 
   <!-- GAME -->
   <div id="gameScreen" class="screen">
     <div class="game-info">
-      <button class="menu-exit-btn" id="exitGameBtn">МЕНЮ</button>
-      <span id="distanceDisplay">0 m</span>
+      <button class="menu-exit-btn" id="exitGameBtn">Меню</button>
+      <span id="distanceDisplay">0 м</span>
       <span id="fuelDisplay">⛽ 100%</span>
       <span id="scoreDisplay">🪙 0</span>
     </div>
@@ -192,53 +179,53 @@
       <button class="ctrl-btn" id="tiltRightBtn">▶</button>
     </div>
     <div class="overlay" id="gameOverOverlay">
-      <h2 style="color:#ff4444;" id="gameOverTitle">АВАРИЯ</h2>
+      <h2 style="color:#e74c3c;">Авария!</h2>
       <p id="finalScoreText" style="font-size:1.3rem;"></p>
-      <button class="btn" id="restartBtn">ЗАНОВО</button>
-      <button class="btn secondary" id="menuOverlayBtn">МЕНЮ</button>
+      <button class="btn" id="restartBtn">Заново</button>
+      <button class="btn secondary" id="menuOverlayBtn">Меню</button>
     </div>
   </div>
 </div>
 
 <script>
   (function() {
-    // ========== LOCALE ==========
+    // ========== ЛОКАЛИЗАЦИЯ ==========
     const locales = {
       ru: {
-        play: 'ИГРАТЬ', shop: 'МАГАЗИН', settings: 'НАСТРОЙКИ', history: 'ИСТОРИЯ',
-        shopTitle: 'МАГАЗИН СКИНОВ', back: 'НАЗАД',
-        settingsTitle: 'НАСТРОЙКИ', diff: 'СЛОЖНОСТЬ', easy: 'ЛЁГКАЯ', medium: 'СРЕДНЯЯ', hard: 'СЛОЖНАЯ',
-        sound: 'ЗВУК', on: 'ВКЛ', off: 'ВЫКЛ',
-        historyTitle: 'ИСТОРИЯ РЕКОРДОВ', noRecords: 'Нет записей',
-        menu: 'МЕНЮ', gameOver: 'АВАРИЯ', restart: 'ЗАНОВО', distance: 'Дистанция', coins: 'Монеты',
-        balance: '🪙', skinDefault: 'Классика', skinOcean: 'Океан', skinLava: 'Лава', skinForest: 'Лес', skinSunset: 'Закат',
+        play: 'Играть', shop: 'Магазин', settings: 'Настройки', history: 'История',
+        shopTitle: 'Магазин скинов', back: 'Назад',
+        settingsTitle: 'Настройки', diff: 'Сложность', easy: 'Лёгкая', medium: 'Средняя', hard: 'Сложная',
+        sound: 'Звук', on: 'Вкл', off: 'Выкл',
+        historyTitle: 'История рекордов', noRecords: 'Нет записей',
+        menu: 'Меню', gameOver: 'Авария!', restart: 'Заново', distance: 'Дистанция', coins: 'Монеты',
+        skinDefault: 'Классика', skinOcean: 'Океан', skinLava: 'Лава', skinForest: 'Лес', skinSunset: 'Закат',
         buy: 'Купить', select: 'Выбрать', active: 'Активно'
       },
       en: {
-        play: 'PLAY', shop: 'SHOP', settings: 'SETTINGS', history: 'HISTORY',
-        shopTitle: 'SKIN SHOP', back: 'BACK',
-        settingsTitle: 'SETTINGS', diff: 'DIFFICULTY', easy: 'EASY', medium: 'MEDIUM', hard: 'HARD',
-        sound: 'SOUND', on: 'ON', off: 'OFF',
-        historyTitle: 'SCORE HISTORY', noRecords: 'No records',
-        menu: 'MENU', gameOver: 'CRASH', restart: 'RESTART', distance: 'Distance', coins: 'Coins',
-        balance: '🪙', skinDefault: 'Classic', skinOcean: 'Ocean', skinLava: 'Lava', skinForest: 'Forest', skinSunset: 'Sunset',
+        play: 'Play', shop: 'Shop', settings: 'Settings', history: 'History',
+        shopTitle: 'Skin Shop', back: 'Back',
+        settingsTitle: 'Settings', diff: 'Difficulty', easy: 'Easy', medium: 'Medium', hard: 'Hard',
+        sound: 'Sound', on: 'On', off: 'Off',
+        historyTitle: 'Score History', noRecords: 'No records',
+        menu: 'Menu', gameOver: 'Crash!', restart: 'Restart', distance: 'Distance', coins: 'Coins',
+        skinDefault: 'Classic', skinOcean: 'Ocean', skinLava: 'Lava', skinForest: 'Forest', skinSunset: 'Sunset',
         buy: 'Buy', select: 'Select', active: 'Active'
       }
     };
     let lang = 'ru';
     function t(key) { return locales[lang][key] || key; }
 
-    // ========== STORAGE ==========
+    // ========== ХРАНИЛИЩЕ ==========
     const STORE = {
-      settings: { difficulty:'medium', sound:'on' },
+      settings: { difficulty:'medium', sound:'on', lang:'ru' },
       history: [],
       coins: 100,
       skins: ['default'],
       activeSkin: 'default',
       load() {
         try {
-          const s = localStorage.getItem('hillracer2');
-          if(s) Object.assign(this, JSON.parse(s));
+          const saved = localStorage.getItem('hillracer2');
+          if(saved) Object.assign(this, JSON.parse(saved));
         } catch(e){}
       },
       save() {
@@ -251,29 +238,30 @@
         }));
       }
     };
-    // Скины
     const SKINS = [
-      { id:'default', nameKey:'skinDefault', color:'#ff4444', price:0 },
-      { id:'ocean', nameKey:'skinOcean', color:'#00b4d8', price:50 },
-      { id:'lava', nameKey:'skinLava', color:'#ff5400', price:100 },
-      { id:'forest', nameKey:'skinForest', color:'#2d6a4f', price:150 },
-      { id:'sunset', nameKey:'skinSunset', color:'#ffb703', price:200 },
+      { id:'default', nameKey:'skinDefault', color:'#e74c3c', price:0 },
+      { id:'ocean', nameKey:'skinOcean', color:'#3498db', price:50 },
+      { id:'lava', nameKey:'skinLava', color:'#e67e22', price:100 },
+      { id:'forest', nameKey:'skinForest', color:'#27ae60', price:150 },
+      { id:'sunset', nameKey:'skinSunset', color:'#f1c40f', price:200 },
     ];
 
-    // Audio
+    // ========== АУДИО ==========
     let audioCtx = null;
     function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
     function playSound(freq, type='square', dur=0.1, vol=0.15) {
       if(!audioCtx || STORE.settings.sound!=='on') return;
-      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      g.gain.setValueAtTime(vol, audioCtx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime+dur);
+      try {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        g.gain.setValueAtTime(vol, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime+dur);
+      } catch(e) {}
     }
 
-    // Screens
+    // ========== ЭКРАНЫ ==========
     const screens = {
       menu: document.getElementById('menuScreen'),
       shop: document.getElementById('shopScreen'),
@@ -289,63 +277,42 @@
       if(id==='history') renderHistory();
       applyTexts();
     }
-    // Apply localization
-    function applyTexts() {
-      document.getElementById('playBtn').textContent = t('play');
-      document.getElementById('shopBtn').textContent = t('shop');
-      document.getElementById('settingsBtn').textContent = t('settings');
-      document.getElementById('historyBtn').textContent = t('history');
-      document.getElementById('shopTitle').textContent = t('shopTitle');
-      document.getElementById('backFromShop').textContent = t('back');
-      document.getElementById('settingsTitle').textContent = t('settingsTitle');
-      document.getElementById('diffLabel').textContent = t('diff');
-      document.querySelectorAll('#diffOptions .opt-btn').forEach(b => {
-        b.textContent = t(b.dataset.diff);
-      });
-      document.getElementById('soundLabel').textContent = t('sound');
-      document.querySelectorAll('#soundOptions .opt-btn').forEach(b => {
-        b.textContent = t(b.dataset.sound);
-      });
-      document.getElementById('backFromSettings').textContent = t('back');
-      document.getElementById('historyTitle').textContent = t('historyTitle');
-      document.getElementById('backFromHistory').textContent = t('back');
-      document.getElementById('exitGameBtn').textContent = t('menu');
-      document.getElementById('gameOverTitle').textContent = t('gameOver');
-      document.getElementById('restartBtn').textContent = t('restart');
-      document.getElementById('menuOverlayBtn').textContent = t('menu');
-      // dynamic parts
-      if(gameActive || document.getElementById('gameScreen').classList.contains('active')) {
-        updateGameUI();
-      }
-    }
-    function setLang(newLang) {
-      if(lang===newLang) return;
-      lang = newLang;
-      STORE.settings.lang = lang;
-      STORE.save();
-      applyTexts();
-      document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang===lang));
-      if(screens.shop.classList.contains('active')) renderShop();
-      if(screens.history.classList.contains('active')) renderHistory();
-    }
-    // Language switch buttons
-    const langSwitch = document.getElementById('langSwitch');
-    function renderLangSwitch() {
-      langSwitch.innerHTML = `
-        <button class="lang-btn ${lang==='ru'?'active':''}" data-lang="ru">RU</button>
-        <button class="lang-btn ${lang==='en'?'active':''}" data-lang="en">EN</button>
-      `;
-      langSwitch.querySelectorAll('.lang-btn').forEach(b => {
-        b.addEventListener('click', () => setLang(b.dataset.lang));
-      });
-    }
 
-    // Canvas
+    // ========== ИНТЕРФЕЙС ==========
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
 
-    // Physics constants
+    // ========== ИГРОВЫЕ ПЕРЕМЕННЫЕ ==========
+    let car = null;
+    let fuel, distance, scoreCoins;
+    let gameActive = false;
+    let gasPressed = false, brakePressed = false, tiltLeft = false, tiltRight = false;
+    let objects = { coins: [], fuelCans: [] };
+    let animFrame = null;
+
+    // ========== ПОВЕРХНОСТЬ ==========
+    let groundFunc, groundTypeFunc;
+    function buildGround() {
+      groundFunc = (x) => {
+        const base = Math.sin(x * 0.008) * 70 + Math.sin(x * 0.025) * 35 + Math.cos(x * 0.012) * 50 + 250;
+        const type = groundTypeFunc ? groundTypeFunc(x) : 0;
+        if(type === 1) return base + 12; // болото
+        if(type === 2) return base - 25; // мост
+        return base;
+      };
+      groundTypeFunc = (x) => {
+        const zone = Math.floor(x / 600);
+        return (zone * 7 + 3) % 10 < 3 ? 1 : ((zone * 7 + 3) % 10 === 3 ? 2 : 0);
+      };
+    }
+    function getGroundY(x) { return groundFunc(x); }
+    function getGroundAngle(x) {
+      const dx = 1;
+      return Math.atan2(getGroundY(x+dx)-getGroundY(x-dx), 2*dx);
+    }
+
+    // ========== ФИЗИКА ==========
     const GRAVITY = 800;
     const CAR_MASS = 2;
     const CAR_LENGTH = 90;
@@ -359,37 +326,6 @@
     const TILT_TORQUE = 400;
     const FRICTION_COEF = 0.6;
     const FUEL_MAX = 100;
-
-    // Game state
-    let car, fuel, distance, scoreCoins, gameActive = false;
-    let gasPressed, brakePressed, tiltLeft, tiltRight;
-    let groundFunc, groundTypeFunc;
-    let objects = { coins: [], fuelCans: [] };
-    let animFrame;
-
-    function buildGround() {
-      const seed = Date.now() % 1000;
-      const freq1 = 0.008, freq2 = 0.025, freq3 = 0.012;
-      groundFunc = (x) => {
-        const base = Math.sin(x * freq1) * 70 + Math.sin(x * freq2) * 35 + Math.cos(x * freq3) * 50 + 250;
-        const type = groundTypeFunc ? groundTypeFunc(x) : 0;
-        if(type === 1) return base + 10; // болото
-        if(type === 2) return base - 20; // мост
-        return base;
-      };
-      groundTypeFunc = (x) => {
-        const zone = Math.floor(x / 600);
-        const r = (zone * 7 + 3) % 10;
-        if(r < 3) return 1;
-        if(r < 4) return 2;
-        return 0;
-      };
-    }
-    function getGroundY(x) { return groundFunc(x); }
-    function getGroundAngle(x) {
-      const dx = 1;
-      return Math.atan2(getGroundY(x+dx)-getGroundY(x-dx), 2*dx);
-    }
 
     function resetGame() {
       buildGround();
@@ -428,7 +364,7 @@
     }
 
     function updateGameUI() {
-      document.getElementById('distanceDisplay').textContent = `${Math.floor(distance)} m`;
+      document.getElementById('distanceDisplay').textContent = `${Math.floor(distance)} м`;
       document.getElementById('fuelDisplay').textContent = `⛽ ${Math.ceil(fuel)}%`;
       document.getElementById('scoreDisplay').textContent = `🪙 ${scoreCoins}`;
     }
@@ -436,62 +372,54 @@
     function gameOver() {
       if(!gameActive) return;
       gameActive = false;
-      STORE.history.push({ dist: Math.floor(distance), coins: scoreCoins, date: new Date().toLocaleString() });
+      STORE.history.push({
+        dist: Math.floor(distance), coins: scoreCoins, date: new Date().toLocaleString()
+      });
       if(STORE.history.length > 10) STORE.history.shift();
       STORE.coins += scoreCoins;
       STORE.save();
       document.getElementById('finalScoreText').textContent =
-        `${t('distance')}: ${Math.floor(distance)} m, ${t('coins')}: ${scoreCoins}`;
+        `${t('distance')}: ${Math.floor(distance)} м, ${t('coins')}: ${scoreCoins}`;
       document.getElementById('gameOverOverlay').classList.add('active');
       playSound(150, 'sawtooth', 0.3);
-      document.getElementById('balanceDisplay').textContent = `🪙 ${STORE.coins}`;
+      updateBalanceDisplay();
     }
 
     function physicsStep(dt) {
-      if(!gameActive) return;
+      if(!gameActive || !car) return;
       // управление
       if(gasPressed && fuel > 0) {
         car.vx += (MOTOR_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
         fuel = Math.max(0, fuel - 6 * dt);
       }
-      if(brakePressed) {
-        car.vx -= (BRAKE_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
-      }
+      if(brakePressed) car.vx -= (BRAKE_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
       if(tiltLeft) car.angularVel -= TILT_TORQUE * dt / CAR_MASS;
       if(tiltRight) car.angularVel += TILT_TORQUE * dt / CAR_MASS;
 
-      // гравитация
       car.vy += GRAVITY * dt;
       car.vx *= 0.999;
       car.angularVel *= 0.98;
 
-      // колёса
       const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
       const wheelStates = [car.wheelRear, car.wheelFront];
-      for(let i = 0; i < 2; i++) {
+      for(let i=0; i<2; i++) {
         const offset = wheelOffsets[i];
         const wx = car.x + offset * Math.cos(car.angle);
         const wy = car.y + offset * Math.sin(car.angle) + CAR_HEIGHT/2 + WHEEL_RADIUS;
         const groundY = getGroundY(wx);
         const penetration = wy - groundY;
         if(penetration > 0) {
-          // пружина
+          const normalAngle = getGroundAngle(wx);
           const springForce = SPRING_CONSTANT * penetration;
-          // демпфер (скорость сжатия)
-          const velAlongNormal = car.vy * Math.cos(getGroundAngle(wx)) + car.vx * Math.sin(getGroundAngle(wx));
+          const velAlongNormal = car.vy * Math.cos(normalAngle) + car.vx * Math.sin(normalAngle);
           const damperForce = DAMPER_COEF * Math.max(0, velAlongNormal);
           const totalForce = springForce + damperForce;
-          // прикладываем силу к кузову в точке крепления колеса
-          const normalAngle = getGroundAngle(wx);
           const fx = Math.sin(normalAngle) * totalForce;
           const fy = -Math.cos(normalAngle) * totalForce;
           car.vx += fx * dt / CAR_MASS;
           car.vy += fy * dt / CAR_MASS;
-          // крутящий момент
-          const rx = wx - car.x;
-          const ry = wy - car.y;
+          const rx = wx - car.x, ry = wy - car.y;
           car.angularVel += (rx * fy - ry * fx) * dt / CAR_MASS;
-          // трение
           const tangentAngle = normalAngle + Math.PI/2;
           const tangentX = Math.cos(tangentAngle), tangentY = Math.sin(tangentAngle);
           const wheelVelX = car.vx - car.angularVel * (wy - car.y);
@@ -503,7 +431,6 @@
           car.vx += tangentX * frictionForce * dt / CAR_MASS;
           car.vy += tangentY * frictionForce * dt / CAR_MASS;
           car.angularVel += (rx * (tangentY * frictionForce) - ry * (tangentX * frictionForce)) * dt / CAR_MASS;
-          // сжатие подвески для анимации
           wheelStates[i].compression = Math.min(MAX_SUSPENSION, penetration);
           wheelStates[i].compressionVel = velAlongNormal;
         } else {
@@ -516,11 +443,10 @@
       car.y += car.vy * dt;
       car.angle += car.angularVel * dt;
 
-      if(Math.abs(car.angle) > Math.PI/2 + 0.4 || fuel <= 0 || car.y > getGroundY(car.x) + 200) {
+      if(Math.abs(car.angle) > Math.PI/2 + 0.4 || fuel <= 0 || car.y > getGroundY(car.x) + 250) {
         gameOver(); return;
       }
 
-      // сбор
       const box = { l: car.x-CAR_LENGTH/2, r: car.x+CAR_LENGTH/2, t: car.y-CAR_HEIGHT/2, b: car.y+CAR_HEIGHT/2 };
       objects.coins = objects.coins.filter(c => {
         if(c.x>box.l && c.x<box.r && c.y>box.t && c.y<box.b) { scoreCoins++; playSound(600,'sine',0.05); return false; }
@@ -535,7 +461,7 @@
       updateGameUI();
     }
 
-    // Rendering
+    // ========== ОТРИСОВКА ==========
     function drawTerrain() {
       const startX = car.x - W/2 - 100, endX = car.x + W/2 + 100;
       ctx.beginPath();
@@ -547,59 +473,43 @@
       }
       ctx.lineTo(W, H);
       ctx.closePath();
-      // fill based on type
       const type = groundTypeFunc(car.x);
-      if(type === 1) ctx.fillStyle = '#6B4226'; // болото коричневое
-      else if(type === 2) ctx.fillStyle = '#8B5A2B'; // мост деревянный (коричневатый)
+      if(type === 1) ctx.fillStyle = '#8B5A2B'; // болото коричневое
+      else if(type === 2) ctx.fillStyle = '#CD853F'; // мост деревянный
       else ctx.fillStyle = '#4CAF50'; // трава зелёная
       ctx.fill();
       ctx.strokeStyle = '#2E7D32'; ctx.lineWidth=2; ctx.stroke();
-      // draw grass details
-      if(type === 0) {
-        ctx.strokeStyle = '#388E3C';
-        for(let x = startX; x < endX; x+=15) {
-          const sx = W/2 + (x - car.x);
-          const sy = H/2 + (getGroundY(x) - car.y);
-          ctx.beginPath();
-          ctx.moveTo(sx, sy);
-          ctx.lineTo(sx+2, sy-5);
-          ctx.stroke();
-        }
-      }
     }
 
     function drawCar() {
+      if(!car) return;
       const skin = SKINS.find(s=>s.id===STORE.activeSkin) || SKINS[0];
       ctx.save();
-      const sx = W/2, sy = H/2 + (car.y - getGroundY(car.x)) * 0? H/2 : H/2; // камера фиксирована на car
       ctx.translate(W/2, H/2);
       ctx.rotate(car.angle);
-      // Кузов
+      // кузов
       ctx.fillStyle = skin.color;
       ctx.fillRect(-CAR_LENGTH/2, -CAR_HEIGHT/2, CAR_LENGTH, CAR_HEIGHT);
-      // окна
-      ctx.fillStyle = '#87CEEB';
-      ctx.fillRect(-10, -CAR_HEIGHT/2+4, 20, 10);
-      // фары
-      ctx.fillStyle = '#ffff00';
-      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-5, -5, 4, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-5, 5, 4, 0, Math.PI*2); ctx.fill();
-      // Колёса с учётом сжатия подвески
+      ctx.fillStyle = '#AED6F1';
+      ctx.fillRect(-12, -CAR_HEIGHT/2+4, 24, 10);
+      ctx.fillStyle = '#F9E79F';
+      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-6, -5, 5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-6, 5, 5, 0, Math.PI*2); ctx.fill();
+      // колёса с подвеской
       const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
       const comps = [car.wheelRear.compression, car.wheelFront.compression];
       wheelOffsets.forEach((off, i) => {
         ctx.save();
         ctx.translate(off, CAR_HEIGHT/2 + WHEEL_RADIUS - comps[i]);
-        ctx.fillStyle = '#222';
+        ctx.fillStyle = '#212F3D';
         ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#555';
+        ctx.fillStyle = '#5D6D7E';
         ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS-4, 0, Math.PI*2); ctx.fill();
-        // диск
-        ctx.strokeStyle = '#aaa';
+        ctx.strokeStyle = '#ABB2B9';
         for(let j=0; j<4; j++) {
           ctx.beginPath();
           ctx.moveTo(0,0);
-          ctx.lineTo(Math.cos(j*Math.PI/2)* (WHEEL_RADIUS-4), Math.sin(j*Math.PI/2)* (WHEEL_RADIUS-4));
+          ctx.lineTo(Math.cos(j*Math.PI/2)*(WHEEL_RADIUS-4), Math.sin(j*Math.PI/2)*(WHEEL_RADIUS-4));
           ctx.stroke();
         }
         ctx.restore();
@@ -608,20 +518,17 @@
     }
 
     function drawObjects() {
+      if(!car) return;
       objects.coins.forEach(c => {
-        const sx = W/2 + (c.x - car.x);
-        const sy = H/2 + (c.y - car.y);
-        ctx.fillStyle = '#FFD700'; ctx.beginPath();
-        ctx.arc(sx, sy, 6, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#B8860B';
-        ctx.beginPath(); ctx.arc(sx-2, sy-2, 2, 0, Math.PI*2); ctx.fill();
+        const sx = W/2 + (c.x - car.x), sy = H/2 + (c.y - car.y);
+        ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#B8860B'; ctx.beginPath(); ctx.arc(sx-2, sy-2, 2, 0, Math.PI*2); ctx.fill();
       });
       objects.fuelCans.forEach(f => {
-        const sx = W/2 + (f.x - car.x);
-        const sy = H/2 + (f.y - car.y);
-        ctx.fillStyle = '#e63946';
+        const sx = W/2 + (f.x - car.x), sy = H/2 + (f.y - car.y);
+        ctx.fillStyle = '#E74C3C';
         ctx.fillRect(sx-7, sy-10, 14, 20);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = 'white';
         ctx.fillRect(sx-3, sy-8, 6, 4);
       });
     }
@@ -629,120 +536,81 @@
     function render() {
       ctx.clearRect(0,0,W,H);
       const grad = ctx.createLinearGradient(0,0,0,H);
-      grad.addColorStop(0,'#4facfe'); grad.addColorStop(1,'#00f2fe');
+      grad.addColorStop(0,'#87CEEB'); grad.addColorStop(1,'#E0F7FA');
       ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
-      drawTerrain();
-      drawObjects();
-      drawCar();
+      if(car) {
+        drawTerrain();
+        drawObjects();
+        drawCar();
+      }
     }
 
+    // ========== ГЛАВНЫЙ ЦИКЛ ==========
     function gameLoop() {
-      if(gameActive) {
+      if(gameActive && car) {
         const dt = Math.min(0.02, 1/60);
-        for(let i=0;i<4;i++) physicsStep(dt/4);
+        for(let i=0; i<4; i++) physicsStep(dt/4);
       }
       render();
       animFrame = requestAnimationFrame(gameLoop);
     }
 
-    // Controls
+    // ========== УПРАВЛЕНИЕ ==========
     function bindControls() {
       const gas = document.getElementById('gasBtn'), brake = document.getElementById('brakeBtn');
       const left = document.getElementById('tiltLeftBtn'), right = document.getElementById('tiltRightBtn');
-      gas.addEventListener('pointerdown', e => { e.preventDefault(); gasPressed=true; });
-      gas.addEventListener('pointerup', e => { e.preventDefault(); gasPressed=false; });
-      brake.addEventListener('pointerdown', e => { e.preventDefault(); brakePressed=true; });
-      brake.addEventListener('pointerup', e => { e.preventDefault(); brakePressed=false; });
-      left.addEventListener('pointerdown', e => { e.preventDefault(); tiltLeft=true; });
-      left.addEventListener('pointerup', e => { e.preventDefault(); tiltLeft=false; });
-      right.addEventListener('pointerdown', e => { e.preventDefault(); tiltRight=true; });
-      right.addEventListener('pointerup', e => { e.preventDefault(); tiltRight=false; });
+      const setTrue = v => e => { e.preventDefault(); v = true; };
+      const setFalse = v => e => { e.preventDefault(); v = false; };
+      gas.addEventListener('pointerdown', () => gasPressed = true);
+      gas.addEventListener('pointerup', () => gasPressed = false);
+      brake.addEventListener('pointerdown', () => brakePressed = true);
+      brake.addEventListener('pointerup', () => brakePressed = false);
+      left.addEventListener('pointerdown', () => tiltLeft = true);
+      left.addEventListener('pointerup', () => tiltLeft = false);
+      right.addEventListener('pointerdown', () => tiltRight = true);
+      right.addEventListener('pointerup', () => tiltRight = false);
       window.addEventListener('keydown', e => {
         if(!gameActive) return;
         switch(e.key) {
-          case 'ArrowUp': gasPressed=true; e.preventDefault(); break;
-          case 'ArrowDown': brakePressed=true; e.preventDefault(); break;
-          case 'ArrowLeft': tiltLeft=true; e.preventDefault(); break;
-          case 'ArrowRight': tiltRight=true; e.preventDefault(); break;
+          case 'ArrowUp': e.preventDefault(); gasPressed = true; break;
+          case 'ArrowDown': e.preventDefault(); brakePressed = true; break;
+          case 'ArrowLeft': e.preventDefault(); tiltLeft = true; break;
+          case 'ArrowRight': e.preventDefault(); tiltRight = true; break;
         }
       });
       window.addEventListener('keyup', e => {
         switch(e.key) {
-          case 'ArrowUp': gasPressed=false; break;
-          case 'ArrowDown': brakePressed=false; break;
-          case 'ArrowLeft': tiltLeft=false; break;
-          case 'ArrowRight': tiltRight=false; break;
+          case 'ArrowUp': gasPressed = false; break;
+          case 'ArrowDown': brakePressed = false; break;
+          case 'ArrowLeft': tiltLeft = false; break;
+          case 'ArrowRight': tiltRight = false; break;
         }
       });
     }
 
-    // UI
-    function updateBalance() {
-      document.getElementById('balanceDisplay').textContent = `🪙 ${STORE.coins}`;
-    }
-    function renderShop() {
-      const list = document.getElementById('shopList');
-      list.innerHTML = SKINS.map(s => {
-        const owned = STORE.skins.includes(s.id);
-        const active = STORE.activeSkin === s.id;
-        let btnHtml;
-        if(active) btnHtml = `<span style="color:green">${t('active')}</span>`;
-        else if(owned) btnHtml = `<button onclick="selectSkin('${s.id}')">${t('select')}</button>`;
-        else btnHtml = `<button onclick="buySkin('${s.id}')">${s.price} 🪙 ${t('buy')}</button>`;
-        return `<div class="shop-item"><span style="color:${s.color}">${t(s.nameKey)}</span>${btnHtml}</div>`;
-      }).join('');
-    }
-    window.buySkin = function(id) {
-      const skin = SKINS.find(s=>s.id===id);
-      if(!skin || STORE.coins < skin.price) return;
-      STORE.coins -= skin.price;
-      STORE.skins.push(id);
-      STORE.activeSkin = id;
-      STORE.save();
-      renderShop();
-      updateBalance();
-    };
-    window.selectSkin = function(id) {
-      if(STORE.skins.includes(id)) {
-        STORE.activeSkin = id;
-        STORE.save();
-        renderShop();
-      }
-    };
-    function renderHistory() {
-      const list = document.getElementById('historyList');
-      list.innerHTML = STORE.history.length ? STORE.history.map(r =>
-        `<div class="history-item"><span>${r.dist} m — ${r.coins} 🪙</span><span>${r.date}</span></div>`
-      ).join('') : t('noRecords');
+    // ========== ОБРАБОТЧИКИ UI ==========
+    function applyTexts() {
+      document.getElementById('playBtn').textContent = t('play');
+      document.getElementById('shopBtn').textContent = t('shop');
+      document.getElementById('settingsBtn').textContent = t('settings');
+      document.getElementById('historyBtn').textContent = t('history');
+      document.getElementById('shopTitle').textContent = t('shopTitle');
+      document.getElementById('backFromShop').textContent = t('back');
+      document.getElementById('settingsTitle').textContent = t('settingsTitle');
+      document.getElementById('diffLabel').textContent = t('diff');
+      document.querySelectorAll('#diffOptions .opt-btn').forEach(b => b.textContent = t(b.dataset.diff));
+      document.getElementById('soundLabel').textContent = t('sound');
+      document.querySelectorAll('#soundOptions .opt-btn').forEach(b => b.textContent = t(b.dataset.sound));
+      document.getElementById('backFromSettings').textContent = t('back');
+      document.getElementById('historyTitle').textContent = t('historyTitle');
+      document.getElementById('backFromHistory').textContent = t('back');
+      document.getElementById('exitGameBtn').textContent = t('menu');
+      document.getElementById('gameOverTitle')?.textContent = t('gameOver');
+      document.getElementById('restartBtn').textContent = t('restart');
+      document.getElementById('menuOverlayBtn').textContent = t('menu');
+      if(gameActive && car) updateGameUI();
     }
 
-    // Button events
-    document.getElementById('playBtn').onclick = () => { initAudio(); showScreen('game'); };
-    document.getElementById('shopBtn').onclick = () => showScreen('shop');
-    document.getElementById('settingsBtn').onclick = () => showScreen('settings');
-    document.getElementById('historyBtn').onclick = () => { renderHistory(); showScreen('history'); };
-    document.getElementById('backFromShop').onclick = () => showScreen('menu');
-    document.getElementById('backFromSettings').onclick = () => showScreen('menu');
-    document.getElementById('backFromHistory').onclick = () => showScreen('menu');
-    document.getElementById('exitGameBtn').onclick = () => { gameActive=false; showScreen('menu'); };
-    document.getElementById('restartBtn').onclick = () => resetGame();
-    document.getElementById('menuOverlayBtn').onclick = () => { showScreen('menu'); };
-
-    // settings handlers
-    document.getElementById('diffOptions').onclick = e => {
-      if(e.target.classList.contains('opt-btn')) {
-        STORE.settings.difficulty = e.target.dataset.diff;
-        STORE.save();
-        updateSettingsUI();
-      }
-    };
-    document.getElementById('soundOptions').onclick = e => {
-      if(e.target.classList.contains('opt-btn')) {
-        STORE.settings.sound = e.target.dataset.sound;
-        STORE.save();
-        updateSettingsUI();
-      }
-    };
     function updateSettingsUI() {
       document.querySelectorAll('#diffOptions .opt-btn').forEach(b => {
         b.classList.toggle('selected', b.dataset.diff === STORE.settings.difficulty);
@@ -752,22 +620,120 @@
       });
     }
 
-    function startGame() {
-      resetGame();
-      if(!animFrame) animFrame = requestAnimationFrame(gameLoop);
+    function renderShop() {
+      document.getElementById('shopList').innerHTML = SKINS.map(s => {
+        const owned = STORE.skins.includes(s.id);
+        const active = STORE.activeSkin === s.id;
+        let btnHtml;
+        if(active) btnHtml = `<span style="color:#27ae60">${t('active')}</span>`;
+        else if(owned) btnHtml = `<button class="select-skin-btn" data-id="${s.id}">${t('select')}</button>`;
+        else btnHtml = `<button class="buy-skin-btn" data-id="${s.id}">${s.price} 🪙 ${t('buy')}</button>`;
+        return `<div class="shop-item"><span style="color:${s.color}">${t(s.nameKey)}</span>${btnHtml}</div>`;
+      }).join('');
+      document.querySelectorAll('.buy-skin-btn').forEach(b => {
+        b.addEventListener('click', () => buySkin(b.dataset.id));
+      });
+      document.querySelectorAll('.select-skin-btn').forEach(b => {
+        b.addEventListener('click', () => selectSkin(b.dataset.id));
+      });
     }
 
-    // Init
-    STORE.load();
-    lang = STORE.settings.lang || 'ru';
-    updateBalance();
-    buildGround();
-    bindControls();
-    renderLangSwitch();
-    applyTexts();
-    updateSettingsUI();
-    animFrame = requestAnimationFrame(gameLoop);
-    showScreen('menu');
+    function buySkin(id) {
+      const skin = SKINS.find(s=>s.id===id);
+      if(!skin || STORE.coins < skin.price) return;
+      STORE.coins -= skin.price;
+      STORE.skins.push(id);
+      STORE.activeSkin = id;
+      STORE.save();
+      renderShop();
+      updateBalanceDisplay();
+    }
+    function selectSkin(id) {
+      if(STORE.skins.includes(id)) {
+        STORE.activeSkin = id;
+        STORE.save();
+        renderShop();
+      }
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = STORE.history.length ? STORE.history.map(r =>
+        `<div class="history-item"><span>${r.dist} м — ${r.coins} 🪙</span><span>${r.date}</span></div>`
+      ).join('') : t('noRecords');
+    }
+
+    function updateBalanceDisplay() {
+      document.getElementById('balanceDisplay').textContent = `🪙 ${STORE.coins}`;
+    }
+
+    function setLang(l) {
+      if(lang === l) return;
+      lang = l;
+      STORE.settings.lang = lang;
+      STORE.save();
+      applyTexts();
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang===lang));
+      // если открыт магазин или история, перерисовать для обновления языка
+      if(screens.shop.classList.contains('active')) renderShop();
+      if(screens.history.classList.contains('active')) renderHistory();
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    function init() {
+      STORE.load();
+      lang = STORE.settings.lang || 'ru';
+      buildGround();
+      bindControls();
+      updateBalanceDisplay();
+      updateSettingsUI();
+      renderLangSwitch();
+      applyTexts();
+      animFrame = requestAnimationFrame(gameLoop);
+      showScreen('menu');
+    }
+
+    function renderLangSwitch() {
+      document.getElementById('langSwitch').innerHTML = `
+        <button class="lang-btn ${lang==='ru'?'active':''}" data-lang="ru">RU</button>
+        <button class="lang-btn ${lang==='en'?'active':''}" data-lang="en">EN</button>
+      `;
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.addEventListener('click', () => setLang(b.dataset.lang));
+      });
+    }
+
+    // привязка кнопок глобально
+    document.getElementById('playBtn').addEventListener('click', () => { initAudio(); showScreen('game'); });
+    document.getElementById('shopBtn').addEventListener('click', () => showScreen('shop'));
+    document.getElementById('settingsBtn').addEventListener('click', () => { updateSettingsUI(); showScreen('settings'); });
+    document.getElementById('historyBtn').addEventListener('click', () => { renderHistory(); showScreen('history'); });
+    document.getElementById('backFromShop').addEventListener('click', () => showScreen('menu'));
+    document.getElementById('backFromSettings').addEventListener('click', () => showScreen('menu'));
+    document.getElementById('backFromHistory').addEventListener('click', () => showScreen('menu'));
+    document.getElementById('exitGameBtn').addEventListener('click', () => { gameActive = false; showScreen('menu'); });
+    document.getElementById('restartBtn').addEventListener('click', resetGame);
+    document.getElementById('menuOverlayBtn').addEventListener('click', () => { gameActive = false; showScreen('menu'); });
+
+    document.getElementById('diffOptions').addEventListener('click', e => {
+      if(e.target.classList.contains('opt-btn')) {
+        STORE.settings.difficulty = e.target.dataset.diff;
+        STORE.save(); updateSettingsUI();
+      }
+    });
+    document.getElementById('soundOptions').addEventListener('click', e => {
+      if(e.target.classList.contains('opt-btn')) {
+        STORE.settings.sound = e.target.dataset.sound;
+        STORE.save(); updateSettingsUI();
+      }
+    });
+
+    function startGame() {
+      if(!car || !gameActive) resetGame();
+      else gameActive = true; // на случай паузы
+    }
+
+    init();
   })();
 </script>
 </body>
