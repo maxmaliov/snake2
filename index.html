@@ -1,693 +1,774 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neon Hill Racer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --neon-cyan: #00ffff;
-            --neon-magenta: #ff00ff;
-            --bg-dark: #020010;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            background: radial-gradient(ellipse at center, #0a0015 0%, #020010 100%);
-            min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            font-family: 'Orbitron', sans-serif;
-            touch-action: manipulation;
-            user-select: none; -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            color: white;
-        }
-        .app {
-            width: 100%; max-width: 800px; padding: 20px;
-            display: flex; flex-direction: column; align-items: center; gap: 25px;
-        }
-        .screen { display: none; width: 100%; flex-direction: column; align-items: center; gap: 25px; }
-        .screen.active { display: flex; }
-
-        .title {
-            font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 6px;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 15px var(--neon-cyan), 0 0 40px var(--neon-magenta), 0 0 80px var(--neon-cyan);
-            animation: flicker 2s infinite alternate; text-align: center; line-height: 1.2;
-        }
-        @keyframes flicker {
-            0% { opacity:1; text-shadow: 0 0 15px var(--neon-cyan), 0 0 40px var(--neon-magenta), 0 0 80px var(--neon-cyan); }
-            50% { opacity:0.85; text-shadow: 0 0 8px var(--neon-cyan), 0 0 25px var(--neon-magenta), 0 0 50px var(--neon-cyan); }
-            100% { opacity:1; text-shadow: 0 0 18px var(--neon-cyan), 0 0 50px var(--neon-magenta), 0 0 100px var(--neon-cyan); }
-        }
-
-        .menu-btn {
-            font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.2rem; letter-spacing: 3px;
-            text-transform: uppercase; padding: 16px 40px; border: 2px solid var(--neon-cyan);
-            background: rgba(0,255,255,0.05); color: var(--neon-cyan); border-radius: 40px;
-            box-shadow: 0 0 15px var(--neon-cyan); cursor: pointer; backdrop-filter: blur(4px);
-            transition: all 0.2s; width: 240px; text-align: center;
-        }
-        .menu-btn:active {
-            background: rgba(0,255,255,0.25); box-shadow: 0 0 30px var(--neon-cyan), 0 0 60px var(--neon-magenta);
-            border-color: var(--neon-magenta); color: var(--neon-magenta); transform: scale(0.96);
-        }
-        .menu-btn.secondary { border-color: var(--neon-magenta); color: var(--neon-magenta); box-shadow: 0 0 15px var(--neon-magenta); }
-        .menu-btn.secondary:active { border-color: var(--neon-cyan); color: var(--neon-cyan); }
-
-        .subtitle {
-            font-size: 1.8rem; font-weight: 700; letter-spacing: 3px; color: var(--neon-magenta);
-            text-shadow: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-cyan); text-align: center;
-        }
-
-        .setting-row { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .setting-label { text-transform: uppercase; letter-spacing: 2px; color: var(--neon-cyan); }
-        .options { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-        .opt-btn {
-            font-family: 'Orbitron', sans-serif; padding: 8px 20px; border: 1px solid var(--neon-magenta);
-            background: transparent; color: var(--neon-magenta); border-radius: 20px; cursor: pointer;
-            letter-spacing: 1px; transition: all 0.2s;
-        }
-        .opt-btn.selected { background: rgba(255,0,255,0.25); box-shadow: 0 0 12px var(--neon-magenta); border-color: var(--neon-cyan); color: var(--neon-cyan); }
-
-        .history-box {
-            width: 100%; max-height: 250px; overflow-y: auto; background: rgba(0,255,255,0.05);
-            border: 1px solid var(--neon-cyan); border-radius: 12px; padding: 12px;
-            box-shadow: 0 0 15px rgba(0,255,255,0.3);
-        }
-        .history-item { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid rgba(0,255,255,0.2); font-size: 0.9rem; }
-        .history-item:last-child { border-bottom: none; }
-
-        .game-container {
-            display: flex; flex-direction: column; align-items: center; width: 100%; gap: 15px;
-        }
-        canvas {
-            border: 2px solid var(--neon-magenta);
-            box-shadow: 0 0 25px var(--neon-magenta), 0 0 60px rgba(0,255,255,0.4);
-            border-radius: 12px; background: #05051a; touch-action: none;
-            max-width: 100%; height: auto;
-        }
-
-        .controls {
-            display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;
-        }
-        .gas-brake, .tilt {
-            display: flex; gap: 10px;
-        }
-        .ctrl-btn {
-            width: 70px; height: 70px; border-radius: 35px;
-            border: 2px solid var(--neon-cyan); background: rgba(0,255,255,0.1);
-            color: var(--neon-cyan); font-size: 2.5rem;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.1s; touch-action: manipulation;
-            box-shadow: 0 0 12px var(--neon-cyan);
-        }
-        .ctrl-btn:active {
-            background: rgba(0,255,255,0.4); box-shadow: 0 0 25px var(--neon-cyan);
-            border-color: var(--neon-magenta); color: var(--neon-magenta);
-        }
-        .game-info {
-            display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap:10px;
-        }
-        .info-text { font-size: 1.2rem; letter-spacing: 2px; color: var(--neon-magenta); text-shadow: 0 0 8px var(--neon-magenta); }
-        .menu-exit-btn { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
-
-        .overlay {
-            display: none; position: absolute; top:0; left:0; right:0; bottom:0;
-            background: rgba(2,0,16,0.92); flex-direction: column; align-items: center; justify-content: center;
-            gap: 20px; border-radius: 12px; z-index: 10; backdrop-filter: blur(4px);
-        }
-        .overlay.active { display: flex; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Hill Racer</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      color: white;
+      overflow-x: hidden;
+    }
+    .app {
+      width: 100%; max-width: 860px; padding: 15px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      position: relative;
+    }
+    .screen {
+      display: none; width: 100%; flex-direction: column; align-items: center;
+      gap: 20px; opacity: 0; transform: translateY(15px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .screen.active {
+      display: flex; opacity: 1; transform: translateY(0);
+    }
+    h1 {
+      font-size: 3rem; font-weight: 900; letter-spacing: 4px;
+      background: linear-gradient(to right, #f12711, #f5af19);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; margin-bottom: 10px;
+      transition: all 0.4s ease;
+    }
+    h2 {
+      font-size: 2rem; font-weight: 700;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-align: center; transition: all 0.4s ease;
+    }
+    .btn {
+      font-size: 1.3rem; font-weight: 700; padding: 15px 35px;
+      border: none; border-radius: 50px; cursor: pointer;
+      background: linear-gradient(145deg, #ff8a00, #e52e71);
+      color: white; letter-spacing: 2px; text-transform: uppercase;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 8px 25px rgba(255,138,0,0.4);
+      width: 250px; text-align: center; position: relative; overflow: hidden;
+    }
+    .btn::after {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 50%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .btn:hover::after { opacity: 1; }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255,138,0,0.6); }
+    .btn:active { transform: scale(0.96); }
+    .btn.secondary {
+      background: linear-gradient(145deg, #00c6ff, #0072ff);
+      box-shadow: 0 8px 25px rgba(0,198,255,0.4);
+    }
+    .btn.secondary:hover { box-shadow: 0 15px 35px rgba(0,198,255,0.6); }
+    .setting-row { display: flex; flex-direction: column; align-items: center; gap: 8px; transition: all 0.3s; }
+    .options { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .opt-btn {
+      padding: 10px 22px; border: 2px solid #fff; background: transparent; color: white;
+      border-radius: 30px; cursor: pointer; font-weight: bold; transition: all 0.3s;
+    }
+    .opt-btn.selected { background: white; color: #16213e; border-color: white; }
+    .history-box, .shop-grid {
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+      border-radius: 16px; padding: 15px; width: 100%; max-height: 300px; overflow-y: auto;
+      transition: all 0.3s;
+    }
+    .history-item, .shop-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .shop-item button {
+      background: #f5af19; border: none; padding: 8px 18px; border-radius: 20px;
+      font-weight: bold; cursor: pointer; transition: 0.3s;
+    }
+    .shop-item button:hover { background: #f12711; }
+    canvas {
+      border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      background: #87CEEB; max-width: 100%; height: auto;
+    }
+    .controls { display: flex; gap: 25px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .ctrl-btn {
+      width: 75px; height: 75px; border-radius: 50%;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(6px);
+      border: 2px solid rgba(255,255,255,0.5); color: white;
+      font-size: 2.2rem; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .ctrl-btn:active { background: rgba(255,255,255,0.4); transform: scale(0.9); box-shadow: 0 8px 25px rgba(255,255,255,0.5); }
+    .game-info { display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 1.2rem; font-weight: bold; }
+    .menu-exit-btn {
+      background: rgba(255,255,255,0.1); border: 1px solid white; color: white;
+      padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.3s;
+    }
+    .menu-exit-btn:hover { background: rgba(255,255,255,0.3); }
+    .overlay {
+      display: none; position: absolute; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.85); flex-direction: column; align-items: center;
+      justify-content: center; gap: 20px; border-radius: 16px; z-index: 10;
+      backdrop-filter: blur(8px); opacity:0; transition: opacity 0.4s;
+    }
+    .overlay.active { display: flex; opacity: 1; }
+    .balance {
+      position: absolute; top: 15px; right: 15px;
+      background: gold; color: black; padding: 5px 15px; border-radius: 20px;
+      font-weight: bold; font-size: 1.2rem; transition: all 0.3s;
+    }
+    .lang-switch {
+      position: absolute; top: 15px; left: 15px;
+      display: flex; gap: 5px;
+    }
+    .lang-btn {
+      background: rgba(255,255,255,0.2); border: none; color: white;
+      padding: 5px 10px; border-radius: 10px; cursor: pointer; transition: 0.3s;
+    }
+    .lang-btn.active { background: white; color: black; }
+  </style>
 </head>
 <body>
 <div class="app" id="app">
-    <!-- MENU -->
-    <div id="menuScreen" class="screen active">
-        <h1 class="title">NEON<br>HILL RACER</h1>
-        <button class="menu-btn" id="playBtn" data-lang="play">ИГРАТЬ</button>
-        <button class="menu-btn secondary" id="settingsBtn" data-lang="settings">НАСТРОЙКИ</button>
-        <button class="menu-btn secondary" id="historyBtn" data-lang="history">ИСТОРИЯ</button>
-    </div>
+  <div class="balance" id="balanceDisplay">🪙 0</div>
+  <div class="lang-switch" id="langSwitch"></div>
 
-    <!-- SETTINGS -->
-    <div id="settingsScreen" class="screen">
-        <h2 class="subtitle" data-lang="settings_title">НАСТРОЙКИ</h2>
-        <div class="setting-row">
-            <span class="setting-label" data-lang="difficulty">СЛОЖНОСТЬ</span>
-            <div class="options" id="diffOptions">
-                <button class="opt-btn" data-diff="easy" data-lang="easy">ЛЁГКАЯ</button>
-                <button class="opt-btn selected" data-diff="medium" data-lang="medium">СРЕДНЯЯ</button>
-                <button class="opt-btn" data-diff="hard" data-lang="hard">СЛОЖНАЯ</button>
-            </div>
-        </div>
-        <div class="setting-row">
-            <span class="setting-label" data-lang="language">ЯЗЫК</span>
-            <div class="options" id="langOptions">
-                <button class="opt-btn selected" data-lang-code="ru">RU</button>
-                <button class="opt-btn" data-lang-code="en">EN</button>
-            </div>
-        </div>
-        <div class="setting-row">
-            <span class="setting-label" data-lang="sound">ЗВУК</span>
-            <div class="options" id="soundOptions">
-                <button class="opt-btn selected" data-sound="on" data-lang="on">ВКЛ</button>
-                <button class="opt-btn" data-sound="off" data-lang="off">ВЫКЛ</button>
-            </div>
-        </div>
-        <button class="menu-btn secondary" id="backFromSettings" data-lang="back">НАЗАД</button>
-    </div>
+  <!-- MENU -->
+  <div id="menuScreen" class="screen active">
+    <h1 id="titleMenu">HILL RACER</h1>
+    <button class="btn" id="playBtn">ИГРАТЬ</button>
+    <button class="btn secondary" id="shopBtn">МАГАЗИН</button>
+    <button class="btn secondary" id="settingsBtn">НАСТРОЙКИ</button>
+    <button class="btn secondary" id="historyBtn">ИСТОРИЯ</button>
+  </div>
 
-    <!-- HISTORY -->
-    <div id="historyScreen" class="screen">
-        <h2 class="subtitle" data-lang="history_title">ИСТОРИЯ РЕКОРДОВ</h2>
-        <div class="history-box" id="historyList"><div style="text-align:center; color:#ff00ff;">Нет записей</div></div>
-        <button class="menu-btn secondary" id="backFromHistory" data-lang="back">НАЗАД</button>
-    </div>
+  <!-- SHOP -->
+  <div id="shopScreen" class="screen">
+    <h2 id="shopTitle">МАГАЗИН СКИНОВ</h2>
+    <div class="shop-grid" id="shopList"></div>
+    <button class="btn secondary" id="backFromShop">НАЗАД</button>
+  </div>
 
-    <!-- GAME -->
-    <div id="gameScreen" class="screen">
-        <div class="game-info">
-            <button class="menu-exit-btn" id="exitGameBtn" data-lang="menu">МЕНЮ</button>
-            <span class="info-text" id="distanceDisplay">0 m</span>
-            <span class="info-text" id="fuelDisplay">⛽ 100%</span>
-            <span class="info-text" id="scoreDisplay">0</span>
-        </div>
-        <canvas id="gameCanvas" width="800" height="400"></canvas>
-        <div class="controls">
-            <div class="gas-brake">
-                <button class="ctrl-btn" id="brakeBtn">▼</button>
-                <button class="ctrl-btn" id="gasBtn">▲</button>
-            </div>
-            <div class="tilt">
-                <button class="ctrl-btn" id="tiltLeftBtn">◀</button>
-                <button class="ctrl-btn" id="tiltRightBtn">▶</button>
-            </div>
-        </div>
-        <div class="overlay" id="gameOverOverlay">
-            <h2 style="color:#ff0044; text-shadow:0 0 20px #ff0044; font-size:2rem;" data-lang="lose">АВАРИЯ</h2>
-            <p id="finalScoreText" style="font-size:1.5rem;"></p>
-            <button class="menu-btn" id="restartBtn" data-lang="restart">ЗАНОВО</button>
-            <button class="menu-btn secondary" id="menuOverlayBtn" data-lang="menu">МЕНЮ</button>
-        </div>
+  <!-- SETTINGS -->
+  <div id="settingsScreen" class="screen">
+    <h2 id="settingsTitle">НАСТРОЙКИ</h2>
+    <div class="setting-row">
+      <span id="diffLabel">СЛОЖНОСТЬ</span>
+      <div class="options" id="diffOptions">
+        <button class="opt-btn" data-diff="easy">ЛЁГКАЯ</button>
+        <button class="opt-btn selected" data-diff="medium">СРЕДНЯЯ</button>
+        <button class="opt-btn" data-diff="hard">СЛОЖНАЯ</button>
+      </div>
     </div>
+    <div class="setting-row">
+      <span id="soundLabel">ЗВУК</span>
+      <div class="options" id="soundOptions">
+        <button class="opt-btn selected" data-sound="on">ВКЛ</button>
+        <button class="opt-btn" data-sound="off">ВЫКЛ</button>
+      </div>
+    </div>
+    <button class="btn secondary" id="backFromSettings">НАЗАД</button>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="historyScreen" class="screen">
+    <h2 id="historyTitle">ИСТОРИЯ РЕКОРДОВ</h2>
+    <div class="history-box" id="historyList"></div>
+    <button class="btn secondary" id="backFromHistory">НАЗАД</button>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameScreen" class="screen">
+    <div class="game-info">
+      <button class="menu-exit-btn" id="exitGameBtn">МЕНЮ</button>
+      <span id="distanceDisplay">0 m</span>
+      <span id="fuelDisplay">⛽ 100%</span>
+      <span id="scoreDisplay">🪙 0</span>
+    </div>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div class="controls">
+      <button class="ctrl-btn" id="brakeBtn">▼</button>
+      <button class="ctrl-btn" id="gasBtn">▲</button>
+      <button class="ctrl-btn" id="tiltLeftBtn">◀</button>
+      <button class="ctrl-btn" id="tiltRightBtn">▶</button>
+    </div>
+    <div class="overlay" id="gameOverOverlay">
+      <h2 style="color:#ff4444;" id="gameOverTitle">АВАРИЯ</h2>
+      <p id="finalScoreText" style="font-size:1.3rem;"></p>
+      <button class="btn" id="restartBtn">ЗАНОВО</button>
+      <button class="btn secondary" id="menuOverlayBtn">МЕНЮ</button>
+    </div>
+  </div>
 </div>
 
 <script>
-    (function() {
-        // ========== LOCALIZATION ==========
-        const translations = {
-            ru: {
-                play: "ИГРАТЬ", settings: "НАСТРОЙКИ", history: "ИСТОРИЯ",
-                settings_title: "НАСТРОЙКИ", difficulty: "СЛОЖНОСТЬ", easy: "ЛЁГКАЯ", medium: "СРЕДНЯЯ", hard: "СЛОЖНАЯ",
-                language: "ЯЗЫК", sound: "ЗВУК", on: "ВКЛ", off: "ВЫКЛ", back: "НАЗАД",
-                history_title: "ИСТОРИЯ РЕКОРДОВ", no_records: "Нет записей",
-                menu: "МЕНЮ", lose: "АВАРИЯ", restart: "ЗАНОВО", distance: "ДИСТАНЦИЯ", score: "ОЧКИ"
-            },
-            en: {
-                play: "PLAY", settings: "SETTINGS", history: "HISTORY",
-                settings_title: "SETTINGS", difficulty: "DIFFICULTY", easy: "EASY", medium: "MEDIUM", hard: "HARD",
-                language: "LANGUAGE", sound: "SOUND", on: "ON", off: "OFF", back: "BACK",
-                history_title: "SCORE HISTORY", no_records: "No records",
-                menu: "MENU", lose: "CRASH", restart: "RESTART", distance: "DISTANCE", score: "SCORE"
-            }
-        };
-        let currentLang = 'ru';
-        function t(key) { return translations[currentLang]?.[key] || key; }
-        function applyLanguage() {
-            document.querySelectorAll('[data-lang]').forEach(el => {
-                const key = el.dataset.lang;
-                if (key && translations[currentLang][key]) {
-                    el.innerHTML = translations[currentLang][key];
-                }
-            });
+  (function() {
+    // ========== LOCALE ==========
+    const locales = {
+      ru: {
+        play: 'ИГРАТЬ', shop: 'МАГАЗИН', settings: 'НАСТРОЙКИ', history: 'ИСТОРИЯ',
+        shopTitle: 'МАГАЗИН СКИНОВ', back: 'НАЗАД',
+        settingsTitle: 'НАСТРОЙКИ', diff: 'СЛОЖНОСТЬ', easy: 'ЛЁГКАЯ', medium: 'СРЕДНЯЯ', hard: 'СЛОЖНАЯ',
+        sound: 'ЗВУК', on: 'ВКЛ', off: 'ВЫКЛ',
+        historyTitle: 'ИСТОРИЯ РЕКОРДОВ', noRecords: 'Нет записей',
+        menu: 'МЕНЮ', gameOver: 'АВАРИЯ', restart: 'ЗАНОВО', distance: 'Дистанция', coins: 'Монеты',
+        balance: '🪙', skinDefault: 'Классика', skinOcean: 'Океан', skinLava: 'Лава', skinForest: 'Лес', skinSunset: 'Закат',
+        buy: 'Купить', select: 'Выбрать', active: 'Активно'
+      },
+      en: {
+        play: 'PLAY', shop: 'SHOP', settings: 'SETTINGS', history: 'HISTORY',
+        shopTitle: 'SKIN SHOP', back: 'BACK',
+        settingsTitle: 'SETTINGS', diff: 'DIFFICULTY', easy: 'EASY', medium: 'MEDIUM', hard: 'HARD',
+        sound: 'SOUND', on: 'ON', off: 'OFF',
+        historyTitle: 'SCORE HISTORY', noRecords: 'No records',
+        menu: 'MENU', gameOver: 'CRASH', restart: 'RESTART', distance: 'Distance', coins: 'Coins',
+        balance: '🪙', skinDefault: 'Classic', skinOcean: 'Ocean', skinLava: 'Lava', skinForest: 'Forest', skinSunset: 'Sunset',
+        buy: 'Buy', select: 'Select', active: 'Active'
+      }
+    };
+    let lang = 'ru';
+    function t(key) { return locales[lang][key] || key; }
+
+    // ========== STORAGE ==========
+    const STORE = {
+      settings: { difficulty:'medium', sound:'on' },
+      history: [],
+      coins: 100,
+      skins: ['default'],
+      activeSkin: 'default',
+      load() {
+        try {
+          const s = localStorage.getItem('hillracer2');
+          if(s) Object.assign(this, JSON.parse(s));
+        } catch(e){}
+      },
+      save() {
+        localStorage.setItem('hillracer2', JSON.stringify({
+          settings: this.settings,
+          history: this.history,
+          coins: this.coins,
+          skins: this.skins,
+          activeSkin: this.activeSkin
+        }));
+      }
+    };
+    // Скины
+    const SKINS = [
+      { id:'default', nameKey:'skinDefault', color:'#ff4444', price:0 },
+      { id:'ocean', nameKey:'skinOcean', color:'#00b4d8', price:50 },
+      { id:'lava', nameKey:'skinLava', color:'#ff5400', price:100 },
+      { id:'forest', nameKey:'skinForest', color:'#2d6a4f', price:150 },
+      { id:'sunset', nameKey:'skinSunset', color:'#ffb703', price:200 },
+    ];
+
+    // Audio
+    let audioCtx = null;
+    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+    function playSound(freq, type='square', dur=0.1, vol=0.15) {
+      if(!audioCtx || STORE.settings.sound!=='on') return;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      g.gain.setValueAtTime(vol, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime+dur);
+    }
+
+    // Screens
+    const screens = {
+      menu: document.getElementById('menuScreen'),
+      shop: document.getElementById('shopScreen'),
+      settings: document.getElementById('settingsScreen'),
+      history: document.getElementById('historyScreen'),
+      game: document.getElementById('gameScreen')
+    };
+    function showScreen(id) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[id].classList.add('active');
+      if(id==='game') startGame();
+      if(id==='shop') renderShop();
+      if(id==='history') renderHistory();
+      applyTexts();
+    }
+    // Apply localization
+    function applyTexts() {
+      document.getElementById('playBtn').textContent = t('play');
+      document.getElementById('shopBtn').textContent = t('shop');
+      document.getElementById('settingsBtn').textContent = t('settings');
+      document.getElementById('historyBtn').textContent = t('history');
+      document.getElementById('shopTitle').textContent = t('shopTitle');
+      document.getElementById('backFromShop').textContent = t('back');
+      document.getElementById('settingsTitle').textContent = t('settingsTitle');
+      document.getElementById('diffLabel').textContent = t('diff');
+      document.querySelectorAll('#diffOptions .opt-btn').forEach(b => {
+        b.textContent = t(b.dataset.diff);
+      });
+      document.getElementById('soundLabel').textContent = t('sound');
+      document.querySelectorAll('#soundOptions .opt-btn').forEach(b => {
+        b.textContent = t(b.dataset.sound);
+      });
+      document.getElementById('backFromSettings').textContent = t('back');
+      document.getElementById('historyTitle').textContent = t('historyTitle');
+      document.getElementById('backFromHistory').textContent = t('back');
+      document.getElementById('exitGameBtn').textContent = t('menu');
+      document.getElementById('gameOverTitle').textContent = t('gameOver');
+      document.getElementById('restartBtn').textContent = t('restart');
+      document.getElementById('menuOverlayBtn').textContent = t('menu');
+      // dynamic parts
+      if(gameActive || document.getElementById('gameScreen').classList.contains('active')) {
+        updateGameUI();
+      }
+    }
+    function setLang(newLang) {
+      if(lang===newLang) return;
+      lang = newLang;
+      STORE.settings.lang = lang;
+      STORE.save();
+      applyTexts();
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang===lang));
+      if(screens.shop.classList.contains('active')) renderShop();
+      if(screens.history.classList.contains('active')) renderHistory();
+    }
+    // Language switch buttons
+    const langSwitch = document.getElementById('langSwitch');
+    function renderLangSwitch() {
+      langSwitch.innerHTML = `
+        <button class="lang-btn ${lang==='ru'?'active':''}" data-lang="ru">RU</button>
+        <button class="lang-btn ${lang==='en'?'active':''}" data-lang="en">EN</button>
+      `;
+      langSwitch.querySelectorAll('.lang-btn').forEach(b => {
+        b.addEventListener('click', () => setLang(b.dataset.lang));
+      });
+    }
+
+    // Canvas
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    // Physics constants
+    const GRAVITY = 800;
+    const CAR_MASS = 2;
+    const CAR_LENGTH = 90;
+    const CAR_HEIGHT = 30;
+    const WHEEL_RADIUS = 13;
+    const SPRING_CONSTANT = 2500;
+    const DAMPER_COEF = 50;
+    const MAX_SUSPENSION = 25;
+    const MOTOR_FORCE = 900;
+    const BRAKE_FORCE = 600;
+    const TILT_TORQUE = 400;
+    const FRICTION_COEF = 0.6;
+    const FUEL_MAX = 100;
+
+    // Game state
+    let car, fuel, distance, scoreCoins, gameActive = false;
+    let gasPressed, brakePressed, tiltLeft, tiltRight;
+    let groundFunc, groundTypeFunc;
+    let objects = { coins: [], fuelCans: [] };
+    let animFrame;
+
+    function buildGround() {
+      const seed = Date.now() % 1000;
+      const freq1 = 0.008, freq2 = 0.025, freq3 = 0.012;
+      groundFunc = (x) => {
+        const base = Math.sin(x * freq1) * 70 + Math.sin(x * freq2) * 35 + Math.cos(x * freq3) * 50 + 250;
+        const type = groundTypeFunc ? groundTypeFunc(x) : 0;
+        if(type === 1) return base + 10; // болото
+        if(type === 2) return base - 20; // мост
+        return base;
+      };
+      groundTypeFunc = (x) => {
+        const zone = Math.floor(x / 600);
+        const r = (zone * 7 + 3) % 10;
+        if(r < 3) return 1;
+        if(r < 4) return 2;
+        return 0;
+      };
+    }
+    function getGroundY(x) { return groundFunc(x); }
+    function getGroundAngle(x) {
+      const dx = 1;
+      return Math.atan2(getGroundY(x+dx)-getGroundY(x-dx), 2*dx);
+    }
+
+    function resetGame() {
+      buildGround();
+      const startX = 400;
+      const frontX = startX + CAR_LENGTH/2, rearX = startX - CAR_LENGTH/2;
+      const yFront = getGroundY(frontX), yRear = getGroundY(rearX);
+      const angle = Math.atan2(yFront - yRear, CAR_LENGTH);
+      car = {
+        x: startX, y: (yFront + yRear)/2 - CAR_HEIGHT/2 - WHEEL_RADIUS - 5,
+        vx: 2, vy: 0,
+        angle: angle, angularVel: 0,
+        wheelFront: { compression: 0, compressionVel: 0 },
+        wheelRear: { compression: 0, compressionVel: 0 }
+      };
+      fuel = FUEL_MAX;
+      distance = 0;
+      scoreCoins = 0;
+      gameActive = true;
+      objects.coins = []; objects.fuelCans = [];
+      spawnObjects();
+      document.getElementById('gameOverOverlay').classList.remove('active');
+      updateGameUI();
+    }
+
+    function spawnObjects() {
+      objects.coins = objects.coins.filter(c => c.x > car.x - 500);
+      objects.fuelCans = objects.fuelCans.filter(f => f.x > car.x - 500);
+      while(objects.coins.length < 40) {
+        const x = car.x + 200 + Math.random() * 600;
+        objects.coins.push({ x, y: getGroundY(x) - 35 - Math.random()*50 });
+      }
+      while(objects.fuelCans.length < 6) {
+        const x = car.x + 400 + Math.random() * 400;
+        objects.fuelCans.push({ x, y: getGroundY(x) - 30 });
+      }
+    }
+
+    function updateGameUI() {
+      document.getElementById('distanceDisplay').textContent = `${Math.floor(distance)} m`;
+      document.getElementById('fuelDisplay').textContent = `⛽ ${Math.ceil(fuel)}%`;
+      document.getElementById('scoreDisplay').textContent = `🪙 ${scoreCoins}`;
+    }
+
+    function gameOver() {
+      if(!gameActive) return;
+      gameActive = false;
+      STORE.history.push({ dist: Math.floor(distance), coins: scoreCoins, date: new Date().toLocaleString() });
+      if(STORE.history.length > 10) STORE.history.shift();
+      STORE.coins += scoreCoins;
+      STORE.save();
+      document.getElementById('finalScoreText').textContent =
+        `${t('distance')}: ${Math.floor(distance)} m, ${t('coins')}: ${scoreCoins}`;
+      document.getElementById('gameOverOverlay').classList.add('active');
+      playSound(150, 'sawtooth', 0.3);
+      document.getElementById('balanceDisplay').textContent = `🪙 ${STORE.coins}`;
+    }
+
+    function physicsStep(dt) {
+      if(!gameActive) return;
+      // управление
+      if(gasPressed && fuel > 0) {
+        car.vx += (MOTOR_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
+        fuel = Math.max(0, fuel - 6 * dt);
+      }
+      if(brakePressed) {
+        car.vx -= (BRAKE_FORCE * dt / CAR_MASS) * Math.cos(car.angle);
+      }
+      if(tiltLeft) car.angularVel -= TILT_TORQUE * dt / CAR_MASS;
+      if(tiltRight) car.angularVel += TILT_TORQUE * dt / CAR_MASS;
+
+      // гравитация
+      car.vy += GRAVITY * dt;
+      car.vx *= 0.999;
+      car.angularVel *= 0.98;
+
+      // колёса
+      const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
+      const wheelStates = [car.wheelRear, car.wheelFront];
+      for(let i = 0; i < 2; i++) {
+        const offset = wheelOffsets[i];
+        const wx = car.x + offset * Math.cos(car.angle);
+        const wy = car.y + offset * Math.sin(car.angle) + CAR_HEIGHT/2 + WHEEL_RADIUS;
+        const groundY = getGroundY(wx);
+        const penetration = wy - groundY;
+        if(penetration > 0) {
+          // пружина
+          const springForce = SPRING_CONSTANT * penetration;
+          // демпфер (скорость сжатия)
+          const velAlongNormal = car.vy * Math.cos(getGroundAngle(wx)) + car.vx * Math.sin(getGroundAngle(wx));
+          const damperForce = DAMPER_COEF * Math.max(0, velAlongNormal);
+          const totalForce = springForce + damperForce;
+          // прикладываем силу к кузову в точке крепления колеса
+          const normalAngle = getGroundAngle(wx);
+          const fx = Math.sin(normalAngle) * totalForce;
+          const fy = -Math.cos(normalAngle) * totalForce;
+          car.vx += fx * dt / CAR_MASS;
+          car.vy += fy * dt / CAR_MASS;
+          // крутящий момент
+          const rx = wx - car.x;
+          const ry = wy - car.y;
+          car.angularVel += (rx * fy - ry * fx) * dt / CAR_MASS;
+          // трение
+          const tangentAngle = normalAngle + Math.PI/2;
+          const tangentX = Math.cos(tangentAngle), tangentY = Math.sin(tangentAngle);
+          const wheelVelX = car.vx - car.angularVel * (wy - car.y);
+          const wheelVelY = car.vy + car.angularVel * (wx - car.x);
+          const tangentVel = wheelVelX * tangentX + wheelVelY * tangentY;
+          const type = groundTypeFunc(wx);
+          const frictionCoef = type === 1 ? 0.3 : (type === 2 ? 0.7 : 0.5);
+          const frictionForce = -Math.sign(tangentVel) * frictionCoef * Math.abs(totalForce);
+          car.vx += tangentX * frictionForce * dt / CAR_MASS;
+          car.vy += tangentY * frictionForce * dt / CAR_MASS;
+          car.angularVel += (rx * (tangentY * frictionForce) - ry * (tangentX * frictionForce)) * dt / CAR_MASS;
+          // сжатие подвески для анимации
+          wheelStates[i].compression = Math.min(MAX_SUSPENSION, penetration);
+          wheelStates[i].compressionVel = velAlongNormal;
+        } else {
+          wheelStates[i].compression = 0;
+          wheelStates[i].compressionVel = 0;
         }
+      }
 
-        // ========== STORAGE ==========
-        const STORAGE_KEYS = { HISTORY: 'hillracer_history', SETTINGS: 'hillracer_settings' };
-        let settings = { difficulty: 'medium', sound: 'on', lang: 'ru' };
-        let history = [];
-        function loadSettings() {
-            try { const s = localStorage.getItem(STORAGE_KEYS.SETTINGS); if(s) settings = {...settings, ...JSON.parse(s)}; currentLang = settings.lang || 'ru'; } catch(e){}
+      car.x += car.vx * dt;
+      car.y += car.vy * dt;
+      car.angle += car.angularVel * dt;
+
+      if(Math.abs(car.angle) > Math.PI/2 + 0.4 || fuel <= 0 || car.y > getGroundY(car.x) + 200) {
+        gameOver(); return;
+      }
+
+      // сбор
+      const box = { l: car.x-CAR_LENGTH/2, r: car.x+CAR_LENGTH/2, t: car.y-CAR_HEIGHT/2, b: car.y+CAR_HEIGHT/2 };
+      objects.coins = objects.coins.filter(c => {
+        if(c.x>box.l && c.x<box.r && c.y>box.t && c.y<box.b) { scoreCoins++; playSound(600,'sine',0.05); return false; }
+        return true;
+      });
+      objects.fuelCans = objects.fuelCans.filter(f => {
+        if(f.x>box.l && f.x<box.r && f.y>box.t && f.y<box.b) { fuel = Math.min(FUEL_MAX, fuel+30); playSound(800,'sine',0.1); return false; }
+        return true;
+      });
+      distance += Math.max(0, car.vx * 0.1);
+      spawnObjects();
+      updateGameUI();
+    }
+
+    // Rendering
+    function drawTerrain() {
+      const startX = car.x - W/2 - 100, endX = car.x + W/2 + 100;
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for(let x = startX; x <= endX; x+=5) {
+        const sx = W/2 + (x - car.x);
+        const sy = H/2 + (getGroundY(x) - car.y);
+        ctx.lineTo(sx, sy);
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      // fill based on type
+      const type = groundTypeFunc(car.x);
+      if(type === 1) ctx.fillStyle = '#6B4226'; // болото коричневое
+      else if(type === 2) ctx.fillStyle = '#8B5A2B'; // мост деревянный (коричневатый)
+      else ctx.fillStyle = '#4CAF50'; // трава зелёная
+      ctx.fill();
+      ctx.strokeStyle = '#2E7D32'; ctx.lineWidth=2; ctx.stroke();
+      // draw grass details
+      if(type === 0) {
+        ctx.strokeStyle = '#388E3C';
+        for(let x = startX; x < endX; x+=15) {
+          const sx = W/2 + (x - car.x);
+          const sy = H/2 + (getGroundY(x) - car.y);
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(sx+2, sy-5);
+          ctx.stroke();
         }
-        function saveSettings() { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings)); }
-        function loadHistory() { try { const h = localStorage.getItem(STORAGE_KEYS.HISTORY); history = h ? JSON.parse(h) : []; } catch(e){} }
-        function saveHistory() { localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history)); }
-        function addHistory(dist, score) {
-            history.unshift({ dist, score, date: new Date().toLocaleString() });
-            if(history.length > 10) history.pop();
-            saveHistory();
+      }
+    }
+
+    function drawCar() {
+      const skin = SKINS.find(s=>s.id===STORE.activeSkin) || SKINS[0];
+      ctx.save();
+      const sx = W/2, sy = H/2 + (car.y - getGroundY(car.x)) * 0? H/2 : H/2; // камера фиксирована на car
+      ctx.translate(W/2, H/2);
+      ctx.rotate(car.angle);
+      // Кузов
+      ctx.fillStyle = skin.color;
+      ctx.fillRect(-CAR_LENGTH/2, -CAR_HEIGHT/2, CAR_LENGTH, CAR_HEIGHT);
+      // окна
+      ctx.fillStyle = '#87CEEB';
+      ctx.fillRect(-10, -CAR_HEIGHT/2+4, 20, 10);
+      // фары
+      ctx.fillStyle = '#ffff00';
+      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-5, -5, 4, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(CAR_LENGTH/2-5, 5, 4, 0, Math.PI*2); ctx.fill();
+      // Колёса с учётом сжатия подвески
+      const wheelOffsets = [-CAR_LENGTH/2, CAR_LENGTH/2];
+      const comps = [car.wheelRear.compression, car.wheelFront.compression];
+      wheelOffsets.forEach((off, i) => {
+        ctx.save();
+        ctx.translate(off, CAR_HEIGHT/2 + WHEEL_RADIUS - comps[i]);
+        ctx.fillStyle = '#222';
+        ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#555';
+        ctx.beginPath(); ctx.arc(0, 0, WHEEL_RADIUS-4, 0, Math.PI*2); ctx.fill();
+        // диск
+        ctx.strokeStyle = '#aaa';
+        for(let j=0; j<4; j++) {
+          ctx.beginPath();
+          ctx.moveTo(0,0);
+          ctx.lineTo(Math.cos(j*Math.PI/2)* (WHEEL_RADIUS-4), Math.sin(j*Math.PI/2)* (WHEEL_RADIUS-4));
+          ctx.stroke();
         }
+        ctx.restore();
+      });
+      ctx.restore();
+    }
 
-        // ========== AUDIO ==========
-        let audioCtx = null;
-        function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-        function playSound(freq, type='square', dur=0.1, vol=0.15) {
-            if(!audioCtx || settings.sound !== 'on') return;
-            const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-            o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            g.gain.setValueAtTime(vol, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
-            o.connect(g); g.connect(audioCtx.destination);
-            o.start(); o.stop(audioCtx.currentTime+dur);
+    function drawObjects() {
+      objects.coins.forEach(c => {
+        const sx = W/2 + (c.x - car.x);
+        const sy = H/2 + (c.y - car.y);
+        ctx.fillStyle = '#FFD700'; ctx.beginPath();
+        ctx.arc(sx, sy, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#B8860B';
+        ctx.beginPath(); ctx.arc(sx-2, sy-2, 2, 0, Math.PI*2); ctx.fill();
+      });
+      objects.fuelCans.forEach(f => {
+        const sx = W/2 + (f.x - car.x);
+        const sy = H/2 + (f.y - car.y);
+        ctx.fillStyle = '#e63946';
+        ctx.fillRect(sx-7, sy-10, 14, 20);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(sx-3, sy-8, 6, 4);
+      });
+    }
+
+    function render() {
+      ctx.clearRect(0,0,W,H);
+      const grad = ctx.createLinearGradient(0,0,0,H);
+      grad.addColorStop(0,'#4facfe'); grad.addColorStop(1,'#00f2fe');
+      ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+      drawTerrain();
+      drawObjects();
+      drawCar();
+    }
+
+    function gameLoop() {
+      if(gameActive) {
+        const dt = Math.min(0.02, 1/60);
+        for(let i=0;i<4;i++) physicsStep(dt/4);
+      }
+      render();
+      animFrame = requestAnimationFrame(gameLoop);
+    }
+
+    // Controls
+    function bindControls() {
+      const gas = document.getElementById('gasBtn'), brake = document.getElementById('brakeBtn');
+      const left = document.getElementById('tiltLeftBtn'), right = document.getElementById('tiltRightBtn');
+      gas.addEventListener('pointerdown', e => { e.preventDefault(); gasPressed=true; });
+      gas.addEventListener('pointerup', e => { e.preventDefault(); gasPressed=false; });
+      brake.addEventListener('pointerdown', e => { e.preventDefault(); brakePressed=true; });
+      brake.addEventListener('pointerup', e => { e.preventDefault(); brakePressed=false; });
+      left.addEventListener('pointerdown', e => { e.preventDefault(); tiltLeft=true; });
+      left.addEventListener('pointerup', e => { e.preventDefault(); tiltLeft=false; });
+      right.addEventListener('pointerdown', e => { e.preventDefault(); tiltRight=true; });
+      right.addEventListener('pointerup', e => { e.preventDefault(); tiltRight=false; });
+      window.addEventListener('keydown', e => {
+        if(!gameActive) return;
+        switch(e.key) {
+          case 'ArrowUp': gasPressed=true; e.preventDefault(); break;
+          case 'ArrowDown': brakePressed=true; e.preventDefault(); break;
+          case 'ArrowLeft': tiltLeft=true; e.preventDefault(); break;
+          case 'ArrowRight': tiltRight=true; e.preventDefault(); break;
         }
-
-        // ========== SCREENS ==========
-        const screens = {
-            menu: document.getElementById('menuScreen'),
-            settings: document.getElementById('settingsScreen'),
-            history: document.getElementById('historyScreen'),
-            game: document.getElementById('gameScreen')
-        };
-        function showScreen(id) {
-            Object.values(screens).forEach(s => s.classList.remove('active'));
-            screens[id].classList.add('active');
-            if(id === 'game') startGame();
-            else stopGame();
+      });
+      window.addEventListener('keyup', e => {
+        switch(e.key) {
+          case 'ArrowUp': gasPressed=false; break;
+          case 'ArrowDown': brakePressed=false; break;
+          case 'ArrowLeft': tiltLeft=false; break;
+          case 'ArrowRight': tiltRight=false; break;
         }
+      });
+    }
 
-        // ========== GAME CONSTANTS ==========
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const W = canvas.width, H = canvas.height;
-        const GRAVITY = 800; // px/s^2
-        const CAR_LENGTH = 80;
-        const CAR_HEIGHT = 30;
-        const WHEEL_RADIUS = 12;
-        const SPRING_K = 2000;
-        const DAMPER = 30;
-        const FRICTION = 0.8;
-        const MOTOR_FORCE = 800; // приложенная сила на заднее колесо
-        const TILT_TORQUE = 300;  // момент для баланса
-        const FUEL_MAX = 100;
-        const FUEL_CONSUMPTION = 2; // % в секунду при газе
+    // UI
+    function updateBalance() {
+      document.getElementById('balanceDisplay').textContent = `🪙 ${STORE.coins}`;
+    }
+    function renderShop() {
+      const list = document.getElementById('shopList');
+      list.innerHTML = SKINS.map(s => {
+        const owned = STORE.skins.includes(s.id);
+        const active = STORE.activeSkin === s.id;
+        let btnHtml;
+        if(active) btnHtml = `<span style="color:green">${t('active')}</span>`;
+        else if(owned) btnHtml = `<button onclick="selectSkin('${s.id}')">${t('select')}</button>`;
+        else btnHtml = `<button onclick="buySkin('${s.id}')">${s.price} 🪙 ${t('buy')}</button>`;
+        return `<div class="shop-item"><span style="color:${s.color}">${t(s.nameKey)}</span>${btnHtml}</div>`;
+      }).join('');
+    }
+    window.buySkin = function(id) {
+      const skin = SKINS.find(s=>s.id===id);
+      if(!skin || STORE.coins < skin.price) return;
+      STORE.coins -= skin.price;
+      STORE.skins.push(id);
+      STORE.activeSkin = id;
+      STORE.save();
+      renderShop();
+      updateBalance();
+    };
+    window.selectSkin = function(id) {
+      if(STORE.skins.includes(id)) {
+        STORE.activeSkin = id;
+        STORE.save();
+        renderShop();
+      }
+    };
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = STORE.history.length ? STORE.history.map(r =>
+        `<div class="history-item"><span>${r.dist} m — ${r.coins} 🪙</span><span>${r.date}</span></div>`
+      ).join('') : t('noRecords');
+    }
 
-        // ========== GAME STATE ==========
-        let car = {
-            x: 200, y: 300,           // центр кузова
-            vx: 0, vy: 0,
-            angle: 0, angularVel: 0
-        };
-        let fuel = FUEL_MAX;
-        let distance = 0;
-        let score = 0;
-        let gameActive = false;
-        let animFrame = null;
+    // Button events
+    document.getElementById('playBtn').onclick = () => { initAudio(); showScreen('game'); };
+    document.getElementById('shopBtn').onclick = () => showScreen('shop');
+    document.getElementById('settingsBtn').onclick = () => showScreen('settings');
+    document.getElementById('historyBtn').onclick = () => { renderHistory(); showScreen('history'); };
+    document.getElementById('backFromShop').onclick = () => showScreen('menu');
+    document.getElementById('backFromSettings').onclick = () => showScreen('menu');
+    document.getElementById('backFromHistory').onclick = () => showScreen('menu');
+    document.getElementById('exitGameBtn').onclick = () => { gameActive=false; showScreen('menu'); };
+    document.getElementById('restartBtn').onclick = () => resetGame();
+    document.getElementById('menuOverlayBtn').onclick = () => { showScreen('menu'); };
 
-        // Управление
-        let gasPressed = false, brakePressed = false;
-        let tiltLeft = false, tiltRight = false;
+    // settings handlers
+    document.getElementById('diffOptions').onclick = e => {
+      if(e.target.classList.contains('opt-btn')) {
+        STORE.settings.difficulty = e.target.dataset.diff;
+        STORE.save();
+        updateSettingsUI();
+      }
+    };
+    document.getElementById('soundOptions').onclick = e => {
+      if(e.target.classList.contains('opt-btn')) {
+        STORE.settings.sound = e.target.dataset.sound;
+        STORE.save();
+        updateSettingsUI();
+      }
+    };
+    function updateSettingsUI() {
+      document.querySelectorAll('#diffOptions .opt-btn').forEach(b => {
+        b.classList.toggle('selected', b.dataset.diff === STORE.settings.difficulty);
+      });
+      document.querySelectorAll('#soundOptions .opt-btn').forEach(b => {
+        b.classList.toggle('selected', b.dataset.sound === STORE.settings.sound);
+      });
+    }
 
-        // Объекты
-        let coins = [], fuelCans = [];
-        let groundPoints = []; // массив {x,y} для визуализации ландшафта (процедурный)
+    function startGame() {
+      resetGame();
+      if(!animFrame) animFrame = requestAnimationFrame(gameLoop);
+    }
 
-        function generateGround(x) {
-            // Функция рельефа: синусоиды разной частоты
-            const freq1 = 0.02, freq2 = 0.05, freq3 = 0.1;
-            const amp1 = 40, amp2 = 20, amp3 = 10;
-            return Math.sin(x * freq1) * amp1 + Math.sin(x * freq2) * amp2 + Math.cos(x * freq3) * amp3 + 250;
-        }
-
-        function getGroundY(x) {
-            return generateGround(x);
-        }
-
-        function getGroundAngle(x) {
-            // угол касательной
-            const dx = 1;
-            const y0 = getGroundY(x - dx);
-            const y1 = getGroundY(x + dx);
-            return Math.atan2(y1 - y0, 2*dx);
-        }
-
-        function spawnObjects(centerX) {
-            // Размещаем монеты и канистры впереди игрока
-            const spread = 400;
-            const minX = car.x - 200;
-            const maxX = car.x + spread;
-            // удаляем далёкие объекты позади
-            coins = coins.filter(c => c.x > car.x - 500);
-            fuelCans = fuelCans.filter(f => f.x > car.x - 500);
-            // добавляем новые впереди
-            while (coins.length < 20) {
-                const rx = maxX - 100 + Math.random() * 600;
-                const groundY = getGroundY(rx);
-                coins.push({x: rx, y: groundY - 30 - Math.random() * 50});
-            }
-            while (fuelCans.length < 5) {
-                const rx = maxX + Math.random() * 400;
-                const groundY = getGroundY(rx);
-                fuelCans.push({x: rx, y: groundY - 30});
-            }
-        }
-
-        function resetGame() {
-            car = {
-                x: 200, y: 200,
-                vx: 30, vy: 0,
-                angle: 0, angularVel: 0
-            };
-            fuel = FUEL_MAX;
-            distance = 0;
-            score = 0;
-            coins = [];
-            fuelCans = [];
-            gameActive = true;
-            document.getElementById('gameOverOverlay').classList.remove('active');
-            spawnObjects(car.x);
-            updateUI();
-        }
-
-        function updateUI() {
-            document.getElementById('distanceDisplay').textContent = `${Math.floor(distance)} m`;
-            document.getElementById('fuelDisplay').textContent = `⛽ ${Math.ceil(fuel)}%`;
-            document.getElementById('scoreDisplay').textContent = score;
-        }
-
-        // ========== PHYSICS ==========
-        function physicsStep(dt) {
-            if (!gameActive) return;
-
-            // Топливо
-            if (gasPressed) {
-                fuel = Math.max(0, fuel - FUEL_CONSUMPTION * dt);
-                if (fuel <= 0) {
-                    gameActive = false;
-                    gameOver();
-                    return;
-                }
-            }
-
-            // Силы и моменты
-            let totalForceX = 0, totalForceY = 0;
-            let totalTorque = 0;
-
-            // Гравитация
-            totalForceY += GRAVITY;
-
-            // Колёса: заднее и переднее
-            const halfLen = CAR_LENGTH / 2;
-            const wheelOffsetX = [ -halfLen, halfLen ];
-            const wheelNames = ['rear', 'front'];
-
-            for (let i = 0; i < 2; i++) {
-                const offset = wheelOffsetX[i];
-                // мировые координаты точки крепления колеса
-                const wx = car.x + offset * Math.cos(car.angle);
-                const wy = car.y + offset * Math.sin(car.angle) - CAR_HEIGHT/2 - 5; // смещение вниз
-
-                const groundY = getGroundY(wx);
-                const wheelY = wy - WHEEL_RADIUS;
-                const penetration = groundY - wheelY; // положительно если колесо над землёй? на самом деле если groundY > wheelY -> проникло
-
-                if (penetration > 0) {
-                    // колесо погружено в землю
-                    const springForce = SPRING_K * penetration - DAMPER * car.vy; // упрощённо демпфирование вертикальной скорости
-                    const normalAngle = getGroundAngle(wx);
-                    const normalX = -Math.sin(normalAngle);
-                    const normalY = Math.cos(normalAngle);
-                    // нормальная сила
-                    const Fn = springForce;
-                    totalForceX += normalX * Fn;
-                    totalForceY += normalY * Fn;
-                    // точка приложения силы = крепление колеса
-                    const rx = wx - car.x;
-                    const ry = wy - car.y;
-                    totalTorque += rx * (normalY * Fn) - ry * (normalX * Fn);
-
-                    // Трение
-                    const tangentAngle = normalAngle;
-                    const tangentX = Math.cos(tangentAngle);
-                    const tangentY = Math.sin(tangentAngle);
-                    // скорость точки колеса
-                    const wheelVelX = car.vx - car.angularVel * ry;
-                    const wheelVelY = car.vy + car.angularVel * rx;
-                    const tangentVel = wheelVelX * tangentX + wheelVelY * tangentY;
-                    const frictionForce = -Math.sign(tangentVel) * FRICTION * Math.abs(Fn);
-                    totalForceX += tangentX * frictionForce;
-                    totalForceY += tangentY * frictionForce;
-                    totalTorque += rx * (tangentY * frictionForce) - ry * (tangentX * frictionForce);
-
-                    // Мотор только на заднее колесо (i===0)
-                    if (i === 0) {
-                        if (gasPressed) {
-                            const motorF = MOTOR_FORCE * (fuel > 0 ? 1 : 0);
-                            totalForceX += tangentX * motorF;
-                            totalForceY += tangentY * motorF;
-                            totalTorque += rx * (tangentY * motorF) - ry * (tangentX * motorF);
-                        } else if (brakePressed) {
-                            const brakeForce = -MOTOR_FORCE * 0.5;
-                            totalForceX += tangentX * brakeForce;
-                            totalForceY += tangentY * brakeForce;
-                            totalTorque += rx * (tangentY * brakeForce) - ry * (tangentX * brakeForce);
-                        }
-                    }
-                }
-            }
-
-            // Наклон (управление балансом)
-            if (tiltLeft) totalTorque -= TILT_TORQUE;
-            if (tiltRight) totalTorque += TILT_TORQUE;
-
-            // Применяем силы
-            const mass = 1; // условная масса
-            car.vx += totalForceX * dt / mass;
-            car.vy += totalForceY * dt / mass;
-            car.x += car.vx * dt;
-            car.y += car.vy * dt;
-            car.angularVel += totalTorque * dt / mass;
-            car.angle += car.angularVel * dt;
-
-            // Проверка переворота: если угол сильно отклонился (почти перевёрнут)
-            if (Math.abs(car.angle) > Math.PI/2) {
-                gameActive = false;
-                gameOver();
-                return;
-            }
-
-            // Обновление дистанции (пройденный путь по x)
-            distance += Math.max(0, car.vx * dt * 0.1); // масштаб
-
-            // Сбор предметов
-            const carBox = {
-                left: car.x - CAR_LENGTH/2,
-                right: car.x + CAR_LENGTH/2,
-                top: car.y - CAR_HEIGHT/2,
-                bottom: car.y + CAR_HEIGHT/2
-            };
-            coins = coins.filter(coin => {
-                if (coin.x > carBox.left && coin.x < carBox.right && coin.y > carBox.top && coin.y < carBox.bottom) {
-                    score += 10;
-                    playSound(600, 'sine', 0.1);
-                    return false;
-                }
-                return true;
-            });
-            fuelCans = fuelCans.filter(can => {
-                if (can.x > carBox.left && can.x < carBox.right && can.y > carBox.top && can.y < carBox.bottom) {
-                    fuel = Math.min(FUEL_MAX, fuel + 30);
-                    playSound(800, 'sine', 0.15);
-                    return false;
-                }
-                return true;
-            });
-
-            // Генерация новых объектов
-            spawnObjects(car.x);
-        }
-
-        function gameOver() {
-            gameActive = false;
-            addHistory(Math.floor(distance), score);
-            document.getElementById('finalScoreText').textContent = `${t('distance')}: ${Math.floor(distance)} m, ${t('score')}: ${score}`;
-            document.getElementById('gameOverOverlay').classList.add('active');
-            playSound(150, 'sawtooth', 0.3);
-        }
-
-        function restartGame() {
-            document.getElementById('gameOverOverlay').classList.remove('active');
-            resetGame();
-        }
-
-        // ========== RENDERING ==========
-        function drawGround() {
-            ctx.save();
-            ctx.strokeStyle = '#ff00ff';
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#ff00ff';
-            ctx.beginPath();
-            const startX = car.x - W/2 - 100;
-            const endX = car.x + W/2 + 100;
-            const step = 5;
-            let first = true;
-            for (let x = startX; x <= endX; x += step) {
-                const y = getGroundY(x);
-                const sx = W/2 + (x - car.x);
-                const sy = H - (y - car.y) - 50; // смещение камеры
-                if (first) { ctx.moveTo(sx, sy); first = false; }
-                else ctx.lineTo(sx, sy);
-            }
-            ctx.stroke();
-            ctx.restore();
-        }
-
-        function drawCar() {
-            ctx.save();
-            const sx = W/2;
-            const sy = H/2; // камера фиксирована на car
-            ctx.translate(sx, sy);
-            ctx.rotate(car.angle);
-            // Кузов
-            ctx.fillStyle = '#00ffff';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#00ffff';
-            ctx.fillRect(-CAR_LENGTH/2, -CAR_HEIGHT/2, CAR_LENGTH, CAR_HEIGHT);
-            // Колёса
-            ctx.fillStyle = '#ff00ff';
-            const wheelX = [-CAR_LENGTH/2, CAR_LENGTH/2];
-            wheelX.forEach(wx => {
-                ctx.beginPath();
-                ctx.arc(wx, CAR_HEIGHT/2 + 5, WHEEL_RADIUS, 0, Math.PI*2);
-                ctx.fill();
-            });
-            ctx.restore();
-        }
-
-        function drawObjects() {
-            ctx.save();
-            coins.forEach(c => {
-                const sx = W/2 + (c.x - car.x);
-                const sy = H/2 - (c.y - car.y);
-                ctx.fillStyle = '#ffff00';
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = '#ffff00';
-                ctx.beginPath();
-                ctx.arc(sx, sy, 6, 0, Math.PI*2);
-                ctx.fill();
-            });
-            fuelCans.forEach(c => {
-                const sx = W/2 + (c.x - car.x);
-                const sy = H/2 - (c.y - car.y);
-                ctx.fillStyle = '#ff4400';
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = '#ff4400';
-                ctx.fillRect(sx-6, sy-8, 12, 16);
-            });
-            ctx.restore();
-        }
-
-        function drawBackground() {
-            const grad = ctx.createLinearGradient(0,0,0,H);
-            grad.addColorStop(0,'#0a0015');
-            grad.addColorStop(1,'#020010');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0,0,W,H);
-        }
-
-        function render() {
-            ctx.clearRect(0,0,W,H);
-            drawBackground();
-            drawGround();
-            drawObjects();
-            drawCar();
-        }
-
-        function gameLoop() {
-            if (!gameActive) {
-                animFrame = requestAnimationFrame(gameLoop);
-                return;
-            }
-            const dt = Math.min(0.02, 1/60); // фиксируем dt для стабильности
-            for (let i=0; i<4; i++) physicsStep(dt/4); // подшаги
-            updateUI();
-            render();
-            animFrame = requestAnimationFrame(gameLoop);
-        }
-
-        function stopGameLoop() {
-            if (animFrame) cancelAnimationFrame(animFrame);
-            animFrame = null;
-        }
-
-        function startGame() {
-            resetGame();
-            if (!animFrame) animFrame = requestAnimationFrame(gameLoop);
-        }
-
-        // ========== CONTROLS ==========
-        document.getElementById('gasBtn').addEventListener('touchstart', e => { e.preventDefault(); gasPressed = true; });
-        document.getElementById('gasBtn').addEventListener('touchend', e => { e.preventDefault(); gasPressed = false; });
-        document.getElementById('brakeBtn').addEventListener('touchstart', e => { e.preventDefault(); brakePressed = true; });
-        document.getElementById('brakeBtn').addEventListener('touchend', e => { e.preventDefault(); brakePressed = false; });
-        document.getElementById('tiltLeftBtn').addEventListener('touchstart', e => { e.preventDefault(); tiltLeft = true; });
-        document.getElementById('tiltLeftBtn').addEventListener('touchend', e => { e.preventDefault(); tiltLeft = false; });
-        document.getElementById('tiltRightBtn').addEventListener('touchstart', e => { e.preventDefault(); tiltRight = true; });
-        document.getElementById('tiltRightBtn').addEventListener('touchend', e => { e.preventDefault(); tiltRight = false; });
-
-        window.addEventListener('keydown', e => {
-            if (!gameActive) return;
-            switch(e.key) {
-                case 'ArrowUp': e.preventDefault(); gasPressed = true; break;
-                case 'ArrowDown': e.preventDefault(); brakePressed = true; break;
-                case 'ArrowLeft': e.preventDefault(); tiltLeft = true; break;
-                case 'ArrowRight': e.preventDefault(); tiltRight = true; break;
-            }
-        });
-        window.addEventListener('keyup', e => {
-            switch(e.key) {
-                case 'ArrowUp': gasPressed = false; break;
-                case 'ArrowDown': brakePressed = false; break;
-                case 'ArrowLeft': tiltLeft = false; break;
-                case 'ArrowRight': tiltRight = false; break;
-            }
-        });
-
-        // ========== UI BINDINGS ==========
-        document.getElementById('playBtn').addEventListener('click', () => { initAudio(); showScreen('game'); });
-        document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settings'));
-        document.getElementById('historyBtn').addEventListener('click', () => { updateHistoryUI(); showScreen('history'); });
-        document.getElementById('backFromSettings').addEventListener('click', () => showScreen('menu'));
-        document.getElementById('backFromHistory').addEventListener('click', () => showScreen('menu'));
-        document.getElementById('exitGameBtn').addEventListener('click', () => { stopGameLoop(); showScreen('menu'); });
-        document.getElementById('restartBtn').addEventListener('click', restartGame);
-        document.getElementById('menuOverlayBtn').addEventListener('click', () => { stopGameLoop(); showScreen('menu'); });
-
-        // Settings
-        document.getElementById('diffOptions').addEventListener('click', e => {
-            if(e.target.classList.contains('opt-btn')) { settings.difficulty = e.target.dataset.diff; saveSettings(); updateSettingsUI(); }
-        });
-        document.getElementById('langOptions').addEventListener('click', e => {
-            if(e.target.classList.contains('opt-btn')) { settings.lang = e.target.dataset.langCode; currentLang = settings.lang; saveSettings(); applyLanguage(); updateSettingsUI(); updateHistoryUI(); }
-        });
-        document.getElementById('soundOptions').addEventListener('click', e => {
-            if(e.target.classList.contains('opt-btn')) { settings.sound = e.target.dataset.sound; saveSettings(); updateSettingsUI(); if(settings.sound==='on') initAudio(); }
-        });
-
-        function updateSettingsUI() {
-            document.querySelectorAll('#diffOptions .opt-btn').forEach(b => b.classList.toggle('selected', b.dataset.diff === settings.difficulty));
-            document.querySelectorAll('#langOptions .opt-btn').forEach(b => b.classList.toggle('selected', b.dataset.langCode === settings.lang));
-            document.querySelectorAll('#soundOptions .opt-btn').forEach(b => b.classList.toggle('selected', b.dataset.sound === settings.sound));
-        }
-        function updateHistoryUI() {
-            const list = document.getElementById('historyList');
-            if(history.length === 0) list.innerHTML = `<div style="text-align:center; color:#ff00ff;">${t('no_records')}</div>`;
-            else list.innerHTML = history.map(r => `<div class="history-item"><span>${r.dist} m — ${r.score} pts</span><span>${r.date}</span></div>`).join('');
-        }
-
-        // Init
-        function init() {
-            loadSettings(); loadHistory();
-            currentLang = settings.lang || 'ru';
-            applyLanguage(); updateSettingsUI(); updateHistoryUI();
-            showScreen('menu');
-            // Предварительная генерация начального ландшафта
-            car.x = 200; car.y = getGroundY(200) - 100;
-            spawnObjects(car.x);
-        }
-        init();
-    })();
+    // Init
+    STORE.load();
+    lang = STORE.settings.lang || 'ru';
+    updateBalance();
+    buildGround();
+    bindControls();
+    renderLangSwitch();
+    applyTexts();
+    updateSettingsUI();
+    animFrame = requestAnimationFrame(gameLoop);
+    showScreen('menu');
+  })();
 </script>
 </body>
 </html>
