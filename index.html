@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neon Escape</title>
+    <title>Neon Hill Racer</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -78,9 +78,9 @@
         .history-item { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid rgba(0,255,255,0.2); font-size: 0.9rem; }
         .history-item:last-child { border-bottom: none; }
 
-        .game-container { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 20px; width: 100%; }
-        @media (max-width: 700px) { .game-container { flex-direction: column; } }
-
+        .game-container {
+            display: flex; flex-direction: column; align-items: center; width: 100%; gap: 15px;
+        }
         canvas {
             border: 2px solid var(--neon-magenta);
             box-shadow: 0 0 25px var(--neon-magenta), 0 0 60px rgba(0,255,255,0.4);
@@ -88,21 +88,27 @@
             max-width: 100%; height: auto;
         }
 
-        .dpad {
-            display: grid;
-            grid-template-areas: ". up ." "left . right" ". down .";
-            gap: 10px;
+        .controls {
+            display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;
         }
-        .dpad-btn {
-            width: 65px; height: 65px; border: 2px solid var(--neon-cyan);
-            background: rgba(0,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; color: var(--neon-cyan); box-shadow: 0 0 12px var(--neon-cyan);
-            cursor: pointer; transition: all 0.08s; touch-action: manipulation;
+        .gas-brake, .tilt {
+            display: flex; gap: 10px;
         }
-        .dpad-btn:active { background: rgba(0,255,255,0.3); box-shadow: 0 0 25px var(--neon-cyan), 0 0 50px var(--neon-magenta); border-color: var(--neon-magenta); color: var(--neon-magenta); transform: scale(0.9); }
-        .dpad-up { grid-area: up; } .dpad-down { grid-area: down; } .dpad-left { grid-area: left; } .dpad-right { grid-area: right; }
-
-        .game-info { display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap:10px; }
+        .ctrl-btn {
+            width: 70px; height: 70px; border-radius: 35px;
+            border: 2px solid var(--neon-cyan); background: rgba(0,255,255,0.1);
+            color: var(--neon-cyan); font-size: 2.5rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.1s; touch-action: manipulation;
+            box-shadow: 0 0 12px var(--neon-cyan);
+        }
+        .ctrl-btn:active {
+            background: rgba(0,255,255,0.4); box-shadow: 0 0 25px var(--neon-cyan);
+            border-color: var(--neon-magenta); color: var(--neon-magenta);
+        }
+        .game-info {
+            display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap:10px;
+        }
         .info-text { font-size: 1.2rem; letter-spacing: 2px; color: var(--neon-magenta); text-shadow: 0 0 8px var(--neon-magenta); }
         .menu-exit-btn { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
 
@@ -118,7 +124,7 @@
 <div class="app" id="app">
     <!-- MENU -->
     <div id="menuScreen" class="screen active">
-        <h1 class="title" data-lang="title">NEON<br>ESCAPE</h1>
+        <h1 class="title">NEON<br>HILL RACER</h1>
         <button class="menu-btn" id="playBtn" data-lang="play">ИГРАТЬ</button>
         <button class="menu-btn secondary" id="settingsBtn" data-lang="settings">НАСТРОЙКИ</button>
         <button class="menu-btn secondary" id="historyBtn" data-lang="history">ИСТОРИЯ</button>
@@ -154,7 +160,7 @@
 
     <!-- HISTORY -->
     <div id="historyScreen" class="screen">
-        <h2 class="subtitle" data-lang="history_title">ИСТОРИЯ ОЧКОВ</h2>
+        <h2 class="subtitle" data-lang="history_title">ИСТОРИЯ РЕКОРДОВ</h2>
         <div class="history-box" id="historyList"><div style="text-align:center; color:#ff00ff;">Нет записей</div></div>
         <button class="menu-btn secondary" id="backFromHistory" data-lang="back">НАЗАД</button>
     </div>
@@ -163,30 +169,26 @@
     <div id="gameScreen" class="screen">
         <div class="game-info">
             <button class="menu-exit-btn" id="exitGameBtn" data-lang="menu">МЕНЮ</button>
-            <span class="info-text" id="levelDisplay">LEVEL 1</span>
-            <span class="info-text" id="livesDisplay">❤️❤️❤️</span>
+            <span class="info-text" id="distanceDisplay">0 m</span>
+            <span class="info-text" id="fuelDisplay">⛽ 100%</span>
             <span class="info-text" id="scoreDisplay">0</span>
         </div>
-        <div class="game-container">
-            <canvas id="gameCanvas" width="570" height="570"></canvas>
-            <div class="dpad">
-                <button class="dpad-btn dpad-up">▲</button>
-                <button class="dpad-btn dpad-left">◄</button>
-                <button class="dpad-btn dpad-right">►</button>
-                <button class="dpad-btn dpad-down">▼</button>
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <div class="controls">
+            <div class="gas-brake">
+                <button class="ctrl-btn" id="brakeBtn">▼</button>
+                <button class="ctrl-btn" id="gasBtn">▲</button>
+            </div>
+            <div class="tilt">
+                <button class="ctrl-btn" id="tiltLeftBtn">◀</button>
+                <button class="ctrl-btn" id="tiltRightBtn">▶</button>
             </div>
         </div>
         <div class="overlay" id="gameOverOverlay">
-            <h2 style="color:#ff0044; text-shadow:0 0 20px #ff0044; font-size:2rem;" data-lang="lose">ПОРАЖЕНИЕ</h2>
+            <h2 style="color:#ff0044; text-shadow:0 0 20px #ff0044; font-size:2rem;" data-lang="lose">АВАРИЯ</h2>
             <p id="finalScoreText" style="font-size:1.5rem;"></p>
             <button class="menu-btn" id="restartBtn" data-lang="restart">ЗАНОВО</button>
             <button class="menu-btn secondary" id="menuOverlayBtn" data-lang="menu">МЕНЮ</button>
-        </div>
-        <div class="overlay" id="winOverlay">
-            <h2 style="color:#00ff44; text-shadow:0 0 20px #00ff44; font-size:2rem;" data-lang="win">УРОВЕНЬ ПРОЙДЕН!</h2>
-            <p id="winScoreText" style="font-size:1.5rem;"></p>
-            <button class="menu-btn" id="nextLevelBtn" data-lang="next">СЛЕДУЮЩИЙ</button>
-            <button class="menu-btn secondary" id="menuWinBtn" data-lang="menu">МЕНЮ</button>
         </div>
     </div>
 </div>
@@ -196,20 +198,18 @@
         // ========== LOCALIZATION ==========
         const translations = {
             ru: {
-                title: "NEON<br>ESCAPE", play: "ИГРАТЬ", settings: "НАСТРОЙКИ", history: "ИСТОРИЯ",
+                play: "ИГРАТЬ", settings: "НАСТРОЙКИ", history: "ИСТОРИЯ",
                 settings_title: "НАСТРОЙКИ", difficulty: "СЛОЖНОСТЬ", easy: "ЛЁГКАЯ", medium: "СРЕДНЯЯ", hard: "СЛОЖНАЯ",
                 language: "ЯЗЫК", sound: "ЗВУК", on: "ВКЛ", off: "ВЫКЛ", back: "НАЗАД",
-                history_title: "ИСТОРИЯ ОЧКОВ", moves: "ХОДЫ", win: "УРОВЕНЬ ПРОЙДЕН!", next: "СЛЕДУЮЩИЙ",
-                menu: "МЕНЮ", no_records: "Нет записей", level: "УРОВЕНЬ", lose: "ПОРАЖЕНИЕ",
-                restart: "ЗАНОВО", score: "ОЧКИ"
+                history_title: "ИСТОРИЯ РЕКОРДОВ", no_records: "Нет записей",
+                menu: "МЕНЮ", lose: "АВАРИЯ", restart: "ЗАНОВО", distance: "ДИСТАНЦИЯ", score: "ОЧКИ"
             },
             en: {
-                title: "NEON<br>ESCAPE", play: "PLAY", settings: "SETTINGS", history: "HISTORY",
+                play: "PLAY", settings: "SETTINGS", history: "HISTORY",
                 settings_title: "SETTINGS", difficulty: "DIFFICULTY", easy: "EASY", medium: "MEDIUM", hard: "HARD",
                 language: "LANGUAGE", sound: "SOUND", on: "ON", off: "OFF", back: "BACK",
-                history_title: "SCORE HISTORY", moves: "MOVES", win: "LEVEL CLEAR!", next: "NEXT",
-                menu: "MENU", no_records: "No records", level: "LEVEL", lose: "DEFEAT",
-                restart: "RESTART", score: "SCORE"
+                history_title: "SCORE HISTORY", no_records: "No records",
+                menu: "MENU", lose: "CRASH", restart: "RESTART", distance: "DISTANCE", score: "SCORE"
             }
         };
         let currentLang = 'ru';
@@ -218,36 +218,38 @@
             document.querySelectorAll('[data-lang]').forEach(el => {
                 const key = el.dataset.lang;
                 if (key && translations[currentLang][key]) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = translations[currentLang][key];
-                    else el.innerHTML = translations[currentLang][key];
+                    el.innerHTML = translations[currentLang][key];
                 }
             });
-            updateInfoTexts();
         }
 
         // ========== STORAGE ==========
-        const STORAGE_KEYS = { HISTORY: 'neon_escape_history', SETTINGS: 'neon_escape_settings' };
+        const STORAGE_KEYS = { HISTORY: 'hillracer_history', SETTINGS: 'hillracer_settings' };
         let settings = { difficulty: 'medium', sound: 'on', lang: 'ru' };
         let history = [];
         function loadSettings() {
-            try { const s = localStorage.getItem(STORAGE_KEYS.SETTINGS); if (s) settings = {...settings, ...JSON.parse(s)}; currentLang = settings.lang || 'ru'; } catch(e){}
+            try { const s = localStorage.getItem(STORAGE_KEYS.SETTINGS); if(s) settings = {...settings, ...JSON.parse(s)}; currentLang = settings.lang || 'ru'; } catch(e){}
         }
         function saveSettings() { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings)); }
-        function loadHistory() { try { const h = localStorage.getItem(STORAGE_KEYS.HISTORY); history = h ? JSON.parse(h) : []; } catch(e){ history = []; } }
+        function loadHistory() { try { const h = localStorage.getItem(STORAGE_KEYS.HISTORY); history = h ? JSON.parse(h) : []; } catch(e){} }
         function saveHistory() { localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history)); }
-        function addHistory(score, level) { history.unshift({ score, level, date: new Date().toLocaleString() }); if (history.length > 10) history.pop(); saveHistory(); }
+        function addHistory(dist, score) {
+            history.unshift({ dist, score, date: new Date().toLocaleString() });
+            if(history.length > 10) history.pop();
+            saveHistory();
+        }
 
         // ========== AUDIO ==========
         let audioCtx = null;
-        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+        function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
         function playSound(freq, type='square', dur=0.1, vol=0.15) {
-            if (!audioCtx || settings.sound !== 'on') return;
+            if(!audioCtx || settings.sound !== 'on') return;
             const o = audioCtx.createOscillator(), g = audioCtx.createGain();
             o.type = type; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
             g.gain.setValueAtTime(vol, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
             o.connect(g); g.connect(audioCtx.destination);
-            o.start(); o.stop(audioCtx.currentTime + dur);
+            o.start(); o.stop(audioCtx.currentTime+dur);
         }
 
         // ========== SCREENS ==========
@@ -260,314 +262,385 @@
         function showScreen(id) {
             Object.values(screens).forEach(s => s.classList.remove('active'));
             screens[id].classList.add('active');
-            if (id === 'game') startGameSession();
-            else stopGameLoop();
+            if(id === 'game') startGame();
+            else stopGame();
         }
 
-        // ========== GAME STATE ==========
+        // ========== GAME CONSTANTS ==========
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const GRID_SIZE = 19;
-        const CELL_SIZE = 30;
-        const CANVAS_SIZE = GRID_SIZE * CELL_SIZE;
+        const W = canvas.width, H = canvas.height;
+        const GRAVITY = 800; // px/s^2
+        const CAR_LENGTH = 80;
+        const CAR_HEIGHT = 30;
+        const WHEEL_RADIUS = 12;
+        const SPRING_K = 2000;
+        const DAMPER = 30;
+        const FRICTION = 0.8;
+        const MOTOR_FORCE = 800; // приложенная сила на заднее колесо
+        const TILT_TORQUE = 300;  // момент для баланса
+        const FUEL_MAX = 100;
+        const FUEL_CONSUMPTION = 2; // % в секунду при газе
 
-        let maze, player, crystals, exit, enemies, level, score, lives, gameActive, enemyMoveTimer;
-        let particles = [];
-        let animFrameId = null;
+        // ========== GAME STATE ==========
+        let car = {
+            x: 200, y: 300,           // центр кузова
+            vx: 0, vy: 0,
+            angle: 0, angularVel: 0
+        };
+        let fuel = FUEL_MAX;
+        let distance = 0;
+        let score = 0;
+        let gameActive = false;
+        let animFrame = null;
 
-        const ENEMY_COLORS = ['#ff3333', '#ff8800', '#ff00ff'];
+        // Управление
+        let gasPressed = false, brakePressed = false;
+        let tiltLeft = false, tiltRight = false;
 
-        // ========== MAZE GENERATION (Recursive Backtracker) ==========
-        function generateMaze() {
-            const nodeRows = (GRID_SIZE-1)/2, nodeCols = (GRID_SIZE-1)/2;
-            const nodes = Array(nodeRows).fill().map(() => Array(nodeCols).fill().map(() => ({ top:true, right:true, bottom:true, left:true, visited:false })));
-            const stack = [{r:0,c:0}]; nodes[0][0].visited = true;
-            const dirs = [
-                {r:-1,c:0,wall:'top',opp:'bottom'}, {r:1,c:0,wall:'bottom',opp:'top'},
-                {r:0,c:-1,wall:'left',opp:'right'}, {r:0,c:1,wall:'right',opp:'left'}
-            ];
-            while(stack.length) {
-                const cur = stack[stack.length-1];
-                const neighbors = dirs.filter(d => {
-                    const nr = cur.r+d.r, nc = cur.c+d.c;
-                    return nr>=0 && nr<nodeRows && nc>=0 && nc<nodeCols && !nodes[nr][nc].visited;
-                });
-                if(neighbors.length) {
-                    const ch = neighbors[Math.floor(Math.random()*neighbors.length)];
-                    const nr = cur.r+ch.r, nc = cur.c+ch.c;
-                    nodes[cur.r][cur.c][ch.wall] = false;
-                    nodes[nr][nc][ch.opp] = false;
-                    nodes[nr][nc].visited = true;
-                    stack.push({r:nr,c:nc});
-                } else stack.pop();
-            }
-            const grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(true));
-            for(let r=0; r<nodeRows; r++) for(let c=0; c<nodeCols; c++) {
-                const cr=2*r+1, cc=2*c+1;
-                grid[cr][cc] = false;
-                if(!nodes[r][c].top && r>0) grid[cr-1][cc] = false;
-                if(!nodes[r][c].bottom && r<nodeRows-1) grid[cr+1][cc] = false;
-                if(!nodes[r][c].left && c>0) grid[cr][cc-1] = false;
-                if(!nodes[r][c].right && c<nodeCols-1) grid[cr][cc+1] = false;
-            }
-            return grid;
+        // Объекты
+        let coins = [], fuelCans = [];
+        let groundPoints = []; // массив {x,y} для визуализации ландшафта (процедурный)
+
+        function generateGround(x) {
+            // Функция рельефа: синусоиды разной частоты
+            const freq1 = 0.02, freq2 = 0.05, freq3 = 0.1;
+            const amp1 = 40, amp2 = 20, amp3 = 10;
+            return Math.sin(x * freq1) * amp1 + Math.sin(x * freq2) * amp2 + Math.cos(x * freq3) * amp3 + 250;
         }
 
-        function getEmptyCells(maze, exclude=[]) {
-            const cells = [];
-            for(let y=0; y<GRID_SIZE; y++) for(let x=0; x<GRID_SIZE; x++) {
-                if(!maze[y][x] && !exclude.some(e => e.x===x && e.y===y)) cells.push({x,y});
-            }
-            return cells;
+        function getGroundY(x) {
+            return generateGround(x);
         }
 
-        function generateLevel() {
-            maze = generateMaze();
-            const empties = getEmptyCells(maze);
-            if (empties.length < 5) return generateLevel(); // safeguard
-            // place player
-            player = empties.splice(Math.floor(Math.random()*empties.length), 1)[0];
-            // determine numbers based on difficulty and level
-            const diffFactor = { easy: 0.5, medium: 1, hard: 1.5 }[settings.difficulty];
-            const numCrystals = Math.min(4, 2 + Math.floor(level * 0.5 * diffFactor));
-            const numEnemies = Math.min(5, 1 + Math.floor(level * 0.6 * diffFactor));
-            crystals = [];
-            for (let i=0; i<numCrystals; i++) {
-                if (empties.length === 0) break;
-                crystals.push(empties.splice(Math.floor(Math.random()*empties.length), 1)[0]);
+        function getGroundAngle(x) {
+            // угол касательной
+            const dx = 1;
+            const y0 = getGroundY(x - dx);
+            const y1 = getGroundY(x + dx);
+            return Math.atan2(y1 - y0, 2*dx);
+        }
+
+        function spawnObjects(centerX) {
+            // Размещаем монеты и канистры впереди игрока
+            const spread = 400;
+            const minX = car.x - 200;
+            const maxX = car.x + spread;
+            // удаляем далёкие объекты позади
+            coins = coins.filter(c => c.x > car.x - 500);
+            fuelCans = fuelCans.filter(f => f.x > car.x - 500);
+            // добавляем новые впереди
+            while (coins.length < 20) {
+                const rx = maxX - 100 + Math.random() * 600;
+                const groundY = getGroundY(rx);
+                coins.push({x: rx, y: groundY - 30 - Math.random() * 50});
             }
-            // exit
-            exit = empties.splice(Math.floor(Math.random()*empties.length), 1)[0];
-            // enemies
-            enemies = [];
-            for (let i=0; i<numEnemies; i++) {
-                if (empties.length === 0) break;
-                const pos = empties.splice(Math.floor(Math.random()*empties.length), 1)[0];
-                enemies.push({ pos, dir: {x:0, y:0}, color: ENEMY_COLORS[i % ENEMY_COLORS.length] });
-                // give initial direction
-                const possibleDirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => {
-                    const nx = pos.x + d.x, ny = pos.y + d.y;
-                    return nx>=0 && nx<GRID_SIZE && ny>=0 && ny<GRID_SIZE && !maze[ny][nx];
-                });
-                if (possibleDirs.length) {
-                    enemies[i].dir = possibleDirs[Math.floor(Math.random()*possibleDirs.length)];
-                }
+            while (fuelCans.length < 5) {
+                const rx = maxX + Math.random() * 400;
+                const groundY = getGroundY(rx);
+                fuelCans.push({x: rx, y: groundY - 30});
             }
+        }
+
+        function resetGame() {
+            car = {
+                x: 200, y: 200,
+                vx: 30, vy: 0,
+                angle: 0, angularVel: 0
+            };
+            fuel = FUEL_MAX;
+            distance = 0;
+            score = 0;
+            coins = [];
+            fuelCans = [];
             gameActive = true;
-            updateInfoTexts();
+            document.getElementById('gameOverOverlay').classList.remove('active');
+            spawnObjects(car.x);
+            updateUI();
         }
 
-        function updateInfoTexts() {
-            document.getElementById('levelDisplay').textContent = `${t('level')} ${level}`;
+        function updateUI() {
+            document.getElementById('distanceDisplay').textContent = `${Math.floor(distance)} m`;
+            document.getElementById('fuelDisplay').textContent = `⛽ ${Math.ceil(fuel)}%`;
             document.getElementById('scoreDisplay').textContent = score;
-            document.getElementById('livesDisplay').textContent = '❤️'.repeat(lives);
         }
 
-        function moveEnemies() {
-            if (!gameActive || lives <= 0) return;
-            enemies.forEach(enemy => {
-                // try to continue in same direction, else pick new random
-                let moved = false;
-                const newX = enemy.pos.x + enemy.dir.x;
-                const newY = enemy.pos.y + enemy.dir.y;
-                if (newX>=0 && newX<GRID_SIZE && newY>=0 && newY<GRID_SIZE && !maze[newY][newX] &&
-                    !(player.x === newX && player.y === newY) && // can step on player (collision later)
-                    !enemies.some(e => e !== enemy && e.pos.x === newX && e.pos.y === newY)) {
-                    enemy.pos = {x: newX, y: newY};
-                    moved = true;
-                } else {
-                    // pick new direction
-                    const possible = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => {
-                        const nx = enemy.pos.x + d.x, ny = enemy.pos.y + d.y;
-                        return nx>=0 && nx<GRID_SIZE && ny>=0 && ny<GRID_SIZE && !maze[ny][nx] &&
-                               !(player.x === nx && player.y === ny);
-                    });
-                    if (possible.length) {
-                        enemy.dir = possible[Math.floor(Math.random()*possible.length)];
-                        enemy.pos = {x: enemy.pos.x + enemy.dir.x, y: enemy.pos.y + enemy.dir.y};
-                        moved = true;
-                    }
-                }
-                if (moved) {
-                    // check collision with player after move
-                    if (enemy.pos.x === player.x && enemy.pos.y === player.y) {
-                        handlePlayerHit();
-                    }
-                }
-            });
-        }
+        // ========== PHYSICS ==========
+        function physicsStep(dt) {
+            if (!gameActive) return;
 
-        function handlePlayerHit() {
-            lives--;
-            updateInfoTexts();
-            playSound(200, 'sawtooth', 0.2);
-            particles.push({x: player.x*CELL_SIZE+CELL_SIZE/2, y: player.y*CELL_SIZE+CELL_SIZE/2, life:0.4, color:'#ff0000'});
-            if (lives <= 0) {
-                gameActive = false;
-                addHistory(score, level);
-                document.getElementById('finalScoreText').textContent = `${t('score')}: ${score}`;
-                document.getElementById('gameOverOverlay').classList.add('active');
-                playSound(100, 'sawtooth', 0.4);
-                stopEnemyTimer();
+            // Топливо
+            if (gasPressed) {
+                fuel = Math.max(0, fuel - FUEL_CONSUMPTION * dt);
+                if (fuel <= 0) {
+                    gameActive = false;
+                    gameOver();
+                    return;
+                }
             }
-        }
 
-        function movePlayer(dx, dy) {
-            if (!gameActive || lives <= 0) return;
-            const newX = player.x + dx;
-            const newY = player.y + dy;
-            if (newX<0||newX>=GRID_SIZE||newY<0||newY>=GRID_SIZE) return;
-            if (maze[newY][newX]) return;
-            // check if stepping on enemy -> hit
-            if (enemies.some(e => e.pos.x === newX && e.pos.y === newY)) {
-                player = {x: newX, y: newY}; // move into enemy
-                handlePlayerHit();
+            // Силы и моменты
+            let totalForceX = 0, totalForceY = 0;
+            let totalTorque = 0;
+
+            // Гравитация
+            totalForceY += GRAVITY;
+
+            // Колёса: заднее и переднее
+            const halfLen = CAR_LENGTH / 2;
+            const wheelOffsetX = [ -halfLen, halfLen ];
+            const wheelNames = ['rear', 'front'];
+
+            for (let i = 0; i < 2; i++) {
+                const offset = wheelOffsetX[i];
+                // мировые координаты точки крепления колеса
+                const wx = car.x + offset * Math.cos(car.angle);
+                const wy = car.y + offset * Math.sin(car.angle) - CAR_HEIGHT/2 - 5; // смещение вниз
+
+                const groundY = getGroundY(wx);
+                const wheelY = wy - WHEEL_RADIUS;
+                const penetration = groundY - wheelY; // положительно если колесо над землёй? на самом деле если groundY > wheelY -> проникло
+
+                if (penetration > 0) {
+                    // колесо погружено в землю
+                    const springForce = SPRING_K * penetration - DAMPER * car.vy; // упрощённо демпфирование вертикальной скорости
+                    const normalAngle = getGroundAngle(wx);
+                    const normalX = -Math.sin(normalAngle);
+                    const normalY = Math.cos(normalAngle);
+                    // нормальная сила
+                    const Fn = springForce;
+                    totalForceX += normalX * Fn;
+                    totalForceY += normalY * Fn;
+                    // точка приложения силы = крепление колеса
+                    const rx = wx - car.x;
+                    const ry = wy - car.y;
+                    totalTorque += rx * (normalY * Fn) - ry * (normalX * Fn);
+
+                    // Трение
+                    const tangentAngle = normalAngle;
+                    const tangentX = Math.cos(tangentAngle);
+                    const tangentY = Math.sin(tangentAngle);
+                    // скорость точки колеса
+                    const wheelVelX = car.vx - car.angularVel * ry;
+                    const wheelVelY = car.vy + car.angularVel * rx;
+                    const tangentVel = wheelVelX * tangentX + wheelVelY * tangentY;
+                    const frictionForce = -Math.sign(tangentVel) * FRICTION * Math.abs(Fn);
+                    totalForceX += tangentX * frictionForce;
+                    totalForceY += tangentY * frictionForce;
+                    totalTorque += rx * (tangentY * frictionForce) - ry * (tangentX * frictionForce);
+
+                    // Мотор только на заднее колесо (i===0)
+                    if (i === 0) {
+                        if (gasPressed) {
+                            const motorF = MOTOR_FORCE * (fuel > 0 ? 1 : 0);
+                            totalForceX += tangentX * motorF;
+                            totalForceY += tangentY * motorF;
+                            totalTorque += rx * (tangentY * motorF) - ry * (tangentX * motorF);
+                        } else if (brakePressed) {
+                            const brakeForce = -MOTOR_FORCE * 0.5;
+                            totalForceX += tangentX * brakeForce;
+                            totalForceY += tangentY * brakeForce;
+                            totalTorque += rx * (tangentY * brakeForce) - ry * (tangentX * brakeForce);
+                        }
+                    }
+                }
+            }
+
+            // Наклон (управление балансом)
+            if (tiltLeft) totalTorque -= TILT_TORQUE;
+            if (tiltRight) totalTorque += TILT_TORQUE;
+
+            // Применяем силы
+            const mass = 1; // условная масса
+            car.vx += totalForceX * dt / mass;
+            car.vy += totalForceY * dt / mass;
+            car.x += car.vx * dt;
+            car.y += car.vy * dt;
+            car.angularVel += totalTorque * dt / mass;
+            car.angle += car.angularVel * dt;
+
+            // Проверка переворота: если угол сильно отклонился (почти перевёрнут)
+            if (Math.abs(car.angle) > Math.PI/2) {
+                gameActive = false;
+                gameOver();
                 return;
             }
-            player = {x: newX, y: newY};
-            // collect crystal?
-            const crystalIdx = crystals.findIndex(c => c.x === newX && c.y === newY);
-            if (crystalIdx !== -1) {
-                crystals.splice(crystalIdx, 1);
-                score += 10;
-                playSound(600, 'sine', 0.1);
-                particles.push({x: newX*CELL_SIZE+CELL_SIZE/2, y: newY*CELL_SIZE+CELL_SIZE/2, life:0.3, color:'#00ffff'});
-            }
-            updateInfoTexts();
-            // check win condition: no crystals left and player on exit
-            if (crystals.length === 0 && player.x === exit.x && player.y === exit.y) {
-                gameActive = false;
-                stopEnemyTimer();
-                score += 50;
-                document.getElementById('winScoreText').textContent = `${t('score')}: ${score}`;
-                document.getElementById('winOverlay').classList.add('active');
-                playSound(800, 'sine', 0.3);
-                addHistory(score, level);
-            }
+
+            // Обновление дистанции (пройденный путь по x)
+            distance += Math.max(0, car.vx * dt * 0.1); // масштаб
+
+            // Сбор предметов
+            const carBox = {
+                left: car.x - CAR_LENGTH/2,
+                right: car.x + CAR_LENGTH/2,
+                top: car.y - CAR_HEIGHT/2,
+                bottom: car.y + CAR_HEIGHT/2
+            };
+            coins = coins.filter(coin => {
+                if (coin.x > carBox.left && coin.x < carBox.right && coin.y > carBox.top && coin.y < carBox.bottom) {
+                    score += 10;
+                    playSound(600, 'sine', 0.1);
+                    return false;
+                }
+                return true;
+            });
+            fuelCans = fuelCans.filter(can => {
+                if (can.x > carBox.left && can.x < carBox.right && can.y > carBox.top && can.y < carBox.bottom) {
+                    fuel = Math.min(FUEL_MAX, fuel + 30);
+                    playSound(800, 'sine', 0.15);
+                    return false;
+                }
+                return true;
+            });
+
+            // Генерация новых объектов
+            spawnObjects(car.x);
         }
 
-        function startEnemyTimer() {
-            stopEnemyTimer();
-            const speed = Math.max(300, 800 - level * 40 * {easy:0.5, medium:1, hard:1.5}[settings.difficulty]);
-            enemyMoveTimer = setInterval(moveEnemies, speed);
-        }
-        function stopEnemyTimer() {
-            if (enemyMoveTimer) clearInterval(enemyMoveTimer);
-            enemyMoveTimer = null;
-        }
-
-        function startGameSession() {
-            level = 1;
-            score = 0;
-            lives = 3;
-            generateLevel();
-            startEnemyTimer();
-            updateInfoTexts();
-            if (!animFrameId) gameLoop();
-        }
-
-        function nextLevel() {
-            document.getElementById('winOverlay').classList.remove('active');
-            level++;
-            generateLevel();
-            startEnemyTimer();
-            updateInfoTexts();
+        function gameOver() {
+            gameActive = false;
+            addHistory(Math.floor(distance), score);
+            document.getElementById('finalScoreText').textContent = `${t('distance')}: ${Math.floor(distance)} m, ${t('score')}: ${score}`;
+            document.getElementById('gameOverOverlay').classList.add('active');
+            playSound(150, 'sawtooth', 0.3);
         }
 
         function restartGame() {
             document.getElementById('gameOverOverlay').classList.remove('active');
-            startGameSession();
-        }
-
-        function stopGameLoop() {
-            stopEnemyTimer();
-            gameActive = false;
-            if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+            resetGame();
         }
 
         // ========== RENDERING ==========
-        function draw() {
-            ctx.clearRect(0,0,CANVAS_SIZE,CANVAS_SIZE);
-            // grid
-            ctx.strokeStyle = '#1a2b4a'; ctx.lineWidth = 0.5;
-            for(let i=0; i<=GRID_SIZE; i++) {
-                ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,CANVAS_SIZE); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(CANVAS_SIZE,i*CELL_SIZE); ctx.stroke();
+        function drawGround() {
+            ctx.save();
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ff00ff';
+            ctx.beginPath();
+            const startX = car.x - W/2 - 100;
+            const endX = car.x + W/2 + 100;
+            const step = 5;
+            let first = true;
+            for (let x = startX; x <= endX; x += step) {
+                const y = getGroundY(x);
+                const sx = W/2 + (x - car.x);
+                const sy = H - (y - car.y) - 50; // смещение камеры
+                if (first) { ctx.moveTo(sx, sy); first = false; }
+                else ctx.lineTo(sx, sy);
             }
-            // walls
-            for(let y=0; y<GRID_SIZE; y++) for(let x=0; x<GRID_SIZE; x++) {
-                if(maze[y][x]) {
-                    const px=x*CELL_SIZE, py=y*CELL_SIZE;
-                    const grad = ctx.createLinearGradient(px,py,px+CELL_SIZE,py+CELL_SIZE);
-                    grad.addColorStop(0,'#1a0033'); grad.addColorStop(1,'#000');
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(px+1,py+1,CELL_SIZE-2,CELL_SIZE-2);
-                    ctx.strokeStyle = '#ff00ff'; ctx.lineWidth=2;
-                    ctx.shadowBlur=12; ctx.shadowColor='#ff00ff';
-                    ctx.strokeRect(px+1.5,py+1.5,CELL_SIZE-3,CELL_SIZE-3);
-                }
-            }
-            ctx.shadowBlur = 0;
-            // exit
-            ctx.shadowBlur=15; ctx.shadowColor='#ff00ff';
-            ctx.fillStyle = 'rgba(255,0,255,0.4)';
-            ctx.fillRect(exit.x*CELL_SIZE+2, exit.y*CELL_SIZE+2, CELL_SIZE-4, CELL_SIZE-4);
-            ctx.strokeStyle = '#ff00ff'; ctx.lineWidth=2;
-            ctx.strokeRect(exit.x*CELL_SIZE+2, exit.y*CELL_SIZE+2, CELL_SIZE-4, CELL_SIZE-4);
-            // crystals
-            crystals.forEach(c => {
-                const cx = c.x*CELL_SIZE+CELL_SIZE/2, cy = c.y*CELL_SIZE+CELL_SIZE/2;
-                ctx.shadowBlur=10; ctx.shadowColor='#00ffff';
-                ctx.fillStyle = '#00ffff';
-                ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawCar() {
+            ctx.save();
+            const sx = W/2;
+            const sy = H/2; // камера фиксирована на car
+            ctx.translate(sx, sy);
+            ctx.rotate(car.angle);
+            // Кузов
+            ctx.fillStyle = '#00ffff';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00ffff';
+            ctx.fillRect(-CAR_LENGTH/2, -CAR_HEIGHT/2, CAR_LENGTH, CAR_HEIGHT);
+            // Колёса
+            ctx.fillStyle = '#ff00ff';
+            const wheelX = [-CAR_LENGTH/2, CAR_LENGTH/2];
+            wheelX.forEach(wx => {
+                ctx.beginPath();
+                ctx.arc(wx, CAR_HEIGHT/2 + 5, WHEEL_RADIUS, 0, Math.PI*2);
+                ctx.fill();
             });
-            // enemies
-            enemies.forEach(enemy => {
-                const ex = enemy.pos.x*CELL_SIZE+CELL_SIZE/2, ey = enemy.pos.y*CELL_SIZE+CELL_SIZE/2;
-                ctx.shadowBlur=12; ctx.shadowColor=enemy.color;
-                ctx.fillStyle = enemy.color;
-                ctx.beginPath(); ctx.moveTo(ex, ey-8); ctx.lineTo(ex+7, ey+8); ctx.lineTo(ex-7, ey+8); ctx.closePath(); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawObjects() {
+            ctx.save();
+            coins.forEach(c => {
+                const sx = W/2 + (c.x - car.x);
+                const sy = H/2 - (c.y - car.y);
+                ctx.fillStyle = '#ffff00';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(sx, sy, 6, 0, Math.PI*2);
+                ctx.fill();
             });
-            // player
-            const px = player.x*CELL_SIZE+CELL_SIZE/2, py = player.y*CELL_SIZE+CELL_SIZE/2;
-            ctx.shadowBlur=18; ctx.shadowColor='#00ffcc';
-            ctx.fillStyle = '#00ffcc';
-            ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc(px-3, py-3, 3, 0, Math.PI*2); ctx.fill();
-            // particles
-            particles = particles.filter(p => { p.life -= 0.02; return p.life>0; });
-            particles.forEach(p => {
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color; ctx.shadowBlur=8; ctx.shadowColor=p.color;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+            fuelCans.forEach(c => {
+                const sx = W/2 + (c.x - car.x);
+                const sy = H/2 - (c.y - car.y);
+                ctx.fillStyle = '#ff4400';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#ff4400';
+                ctx.fillRect(sx-6, sy-8, 12, 16);
             });
-            ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+
+        function drawBackground() {
+            const grad = ctx.createLinearGradient(0,0,0,H);
+            grad.addColorStop(0,'#0a0015');
+            grad.addColorStop(1,'#020010');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0,0,W,H);
+        }
+
+        function render() {
+            ctx.clearRect(0,0,W,H);
+            drawBackground();
+            drawGround();
+            drawObjects();
+            drawCar();
         }
 
         function gameLoop() {
-            draw();
-            animFrameId = requestAnimationFrame(gameLoop);
+            if (!gameActive) {
+                animFrame = requestAnimationFrame(gameLoop);
+                return;
+            }
+            const dt = Math.min(0.02, 1/60); // фиксируем dt для стабильности
+            for (let i=0; i<4; i++) physicsStep(dt/4); // подшаги
+            updateUI();
+            render();
+            animFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function stopGameLoop() {
+            if (animFrame) cancelAnimationFrame(animFrame);
+            animFrame = null;
+        }
+
+        function startGame() {
+            resetGame();
+            if (!animFrame) animFrame = requestAnimationFrame(gameLoop);
         }
 
         // ========== CONTROLS ==========
-        function bindDpad() {
-            document.querySelector('.dpad-up').addEventListener('touchstart', e => { e.preventDefault(); movePlayer(0,-1); });
-            document.querySelector('.dpad-down').addEventListener('touchstart', e => { e.preventDefault(); movePlayer(0,1); });
-            document.querySelector('.dpad-left').addEventListener('touchstart', e => { e.preventDefault(); movePlayer(-1,0); });
-            document.querySelector('.dpad-right').addEventListener('touchstart', e => { e.preventDefault(); movePlayer(1,0); });
-            document.querySelector('.dpad-up').addEventListener('mousedown', e => { e.preventDefault(); movePlayer(0,-1); });
-            document.querySelector('.dpad-down').addEventListener('mousedown', e => { e.preventDefault(); movePlayer(0,1); });
-            document.querySelector('.dpad-left').addEventListener('mousedown', e => { e.preventDefault(); movePlayer(-1,0); });
-            document.querySelector('.dpad-right').addEventListener('mousedown', e => { e.preventDefault(); movePlayer(1,0); });
-        }
+        document.getElementById('gasBtn').addEventListener('touchstart', e => { e.preventDefault(); gasPressed = true; });
+        document.getElementById('gasBtn').addEventListener('touchend', e => { e.preventDefault(); gasPressed = false; });
+        document.getElementById('brakeBtn').addEventListener('touchstart', e => { e.preventDefault(); brakePressed = true; });
+        document.getElementById('brakeBtn').addEventListener('touchend', e => { e.preventDefault(); brakePressed = false; });
+        document.getElementById('tiltLeftBtn').addEventListener('touchstart', e => { e.preventDefault(); tiltLeft = true; });
+        document.getElementById('tiltLeftBtn').addEventListener('touchend', e => { e.preventDefault(); tiltLeft = false; });
+        document.getElementById('tiltRightBtn').addEventListener('touchstart', e => { e.preventDefault(); tiltRight = true; });
+        document.getElementById('tiltRightBtn').addEventListener('touchend', e => { e.preventDefault(); tiltRight = false; });
+
         window.addEventListener('keydown', e => {
-            if (!gameActive || lives<=0) return;
+            if (!gameActive) return;
             switch(e.key) {
-                case 'ArrowUp': e.preventDefault(); movePlayer(0,-1); break;
-                case 'ArrowDown': e.preventDefault(); movePlayer(0,1); break;
-                case 'ArrowLeft': e.preventDefault(); movePlayer(-1,0); break;
-                case 'ArrowRight': e.preventDefault(); movePlayer(1,0); break;
+                case 'ArrowUp': e.preventDefault(); gasPressed = true; break;
+                case 'ArrowDown': e.preventDefault(); brakePressed = true; break;
+                case 'ArrowLeft': e.preventDefault(); tiltLeft = true; break;
+                case 'ArrowRight': e.preventDefault(); tiltRight = true; break;
+            }
+        });
+        window.addEventListener('keyup', e => {
+            switch(e.key) {
+                case 'ArrowUp': gasPressed = false; break;
+                case 'ArrowDown': brakePressed = false; break;
+                case 'ArrowLeft': tiltLeft = false; break;
+                case 'ArrowRight': tiltRight = false; break;
             }
         });
 
@@ -580,21 +653,16 @@
         document.getElementById('exitGameBtn').addEventListener('click', () => { stopGameLoop(); showScreen('menu'); });
         document.getElementById('restartBtn').addEventListener('click', restartGame);
         document.getElementById('menuOverlayBtn').addEventListener('click', () => { stopGameLoop(); showScreen('menu'); });
-        document.getElementById('nextLevelBtn').addEventListener('click', nextLevel);
-        document.getElementById('menuWinBtn').addEventListener('click', () => { stopGameLoop(); showScreen('menu'); });
 
-        // Settings UI
+        // Settings
         document.getElementById('diffOptions').addEventListener('click', e => {
-            if (e.target.classList.contains('opt-btn')) { settings.difficulty = e.target.dataset.diff; saveSettings(); updateSettingsUI(); }
+            if(e.target.classList.contains('opt-btn')) { settings.difficulty = e.target.dataset.diff; saveSettings(); updateSettingsUI(); }
         });
         document.getElementById('langOptions').addEventListener('click', e => {
-            if (e.target.classList.contains('opt-btn')) {
-                settings.lang = e.target.dataset.langCode; currentLang = settings.lang;
-                saveSettings(); applyLanguage(); updateSettingsUI(); updateHistoryUI();
-            }
+            if(e.target.classList.contains('opt-btn')) { settings.lang = e.target.dataset.langCode; currentLang = settings.lang; saveSettings(); applyLanguage(); updateSettingsUI(); updateHistoryUI(); }
         });
         document.getElementById('soundOptions').addEventListener('click', e => {
-            if (e.target.classList.contains('opt-btn')) { settings.sound = e.target.dataset.sound; saveSettings(); updateSettingsUI(); if (settings.sound==='on') initAudio(); }
+            if(e.target.classList.contains('opt-btn')) { settings.sound = e.target.dataset.sound; saveSettings(); updateSettingsUI(); if(settings.sound==='on') initAudio(); }
         });
 
         function updateSettingsUI() {
@@ -604,21 +672,19 @@
         }
         function updateHistoryUI() {
             const list = document.getElementById('historyList');
-            if (history.length === 0) {
-                list.innerHTML = `<div style="text-align:center; color:#ff00ff;">${t('no_records')}</div>`;
-            } else {
-                list.innerHTML = history.map(r => `<div class="history-item"><span>Level ${r.level} - ${r.score} pts</span><span>${r.date}</span></div>`).join('');
-            }
+            if(history.length === 0) list.innerHTML = `<div style="text-align:center; color:#ff00ff;">${t('no_records')}</div>`;
+            else list.innerHTML = history.map(r => `<div class="history-item"><span>${r.dist} m — ${r.score} pts</span><span>${r.date}</span></div>`).join('');
         }
 
+        // Init
         function init() {
             loadSettings(); loadHistory();
             currentLang = settings.lang || 'ru';
             applyLanguage(); updateSettingsUI(); updateHistoryUI();
             showScreen('menu');
-            bindDpad();
-            // preload empty game for safe loop stop
-            maze = generateMaze(); player = {x:9,y:9}; crystals = []; exit = {x:10,y:10}; enemies = [];
+            // Предварительная генерация начального ландшафта
+            car.x = 200; car.y = getGroundY(200) - 100;
+            spawnObjects(car.x);
         }
         init();
     })();
